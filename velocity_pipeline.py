@@ -61,13 +61,25 @@ def compute_velocity(loom, mito_prefix='MT-', cutoff=[5000, 0.15], norm=False):
 
 def load_seurat_umap(args, test):
     test_seu = r('readRDS')(args.seurat)
-    meta = pandas2ri.ri2py(test_seu.slots['meta.data'])
-    clusters = meta.loc[test[1], 'RNA_snn_res.0.8']
+    #meta = pandas2ri.ri2py(r['data.frame'](test_seu.slots['meta.data']))
+    if args.species == 'human': 
+        #clusters = meta.loc[test[1], 'RNA_snn_res.0.8']
+        clusters = pandas2ri.ri2py(r['data.frame'](test_seu.slots['meta.data']).rx2('RNA_snn_res.0.8'))[test[1]]
+    else:
+        #clusters = meta.loc[test[1], 'seurat_clusters']
+        clusters = pandas2ri.ri2py(r['data.frame'](test_seu.slots['meta.data']).rx2('seurat_clusters'))[test[1]]
+
+    print(clusters)
     reductions = pandas2ri.ri2py(r['data.frame'](r['slot'](test_seu.slots['reductions'].rx2('umap'), 'cell.embeddings')))
+
     test[0].obsm['X_umap']  = reductions.loc[test[1], :].values
+
     print(pd.DataFrame(test[0].obsm['X_umap']).describe())
-    test[0].obs['clusters'] = clusters.values
-    test[0].obs['louvain']  = clusters.values
+    #test[0].obs['clusters'] = clusters.values
+    #test[0].obs['louvain']  = clusters.values
+    test[0].obs['clusters'] = clusters
+    test[0].obs['louvain']  = clusters
+
     sc.tl.paga(test[0])
     sc.tl.paga(test[0], groups='clusters', use_rna_velocity=False)
     pos = test[0].obsm['X_umap']
@@ -77,14 +89,19 @@ def load_seurat_umap(args, test):
         redt = red.loc[(clusters==i), :]
         pos_raw.append(redt.median(axis=0).values)
     pos = np.vstack(pos_raw)
-    metalabels = np.array(["GROUND", "Hypoxia", "EMT", 
-                           "G1S", "UNASSIGNED", "G2M", 
-                           "MUSCLE", "INTERFERON", "PROLIF", "Histones"])
-    metacolors = np.array(["#A6A6A6", "#F19545", "#672366", "#3465FC", "#F2F2F2",
-                  "#3465FC", "#E93F33", "#418107", "#3465FC", "#FDF731"])
-    colortab = pd.read_table('color_table.xls')
-    test[0].uns['clusters_colors'] = metacolors[pd.match(colortab.loc[:, args.name].dropna(), metalabels)]
+    if args.species == 'human':
+        metalabels = np.array(["GROUND", "Hypoxia", "EMT", "G1S", "UNASSIGNED", "G2M", "MUSCLE", "INTERFERON", "PROLIF", "Histones"])
+        metacolors = np.array(["#A6A6A6", "#F19545", "#672366", "#3465FC", "#F2F2F2",
+                               "#3465FC", "#E93F33", "#418107", "#3465FC", "#FDF731"])
+        colortab = pd.read_table('color_table.xls')
+        test[0].uns['clusters_colors'] = metacolors[pd.match(colortab.loc[:, args.name].dropna(), metalabels)]
+    else:
+        colortab = pd.read_table('fish_color_table.txt')
+
+    print(test[0].obs['clusters'].cat.categories)
+    print(np.array([str(i) + '_' +colortab.loc[:, args.name].dropna()[i] for i in range(len(colortab.loc[:, args.name].dropna()))]))
     test[0].obs['clusters'].cat.categories = np.array([str(i) + '_' +colortab.loc[:, args.name].dropna()[i] for i in range(len(colortab.loc[:, args.name].dropna()))])
+    print(test[0].obs['clusters'].cat.categories)
     return clusters, reductions, pos
 
 
@@ -92,7 +109,8 @@ def plot_velocity(test, name, pos):
     fig, axes = plt.subplots(2, 3)
     fig.set_size_inches(30, 20)
     ax1=scv.pl.velocity_embedding_stream(test[0], basis='umap', color=['clusters'], 
-                                        legend_fontsize=15, show=False, ax=axes[0][0])
+                                         legend_fontsize=15, show=False, ax=axes[0][0])
+
     ax2=scv.pl.scatter(test[0], color=['root_cells'], size=100, show=False, ax=axes[0][1], legend_fontsize=16)
     ax3=scv.pl.scatter(test[0], color=['end_points'], size=100, show=False, ax=axes[0][2], legend_fontsize=16)
     ax4=scv.pl.scatter(test[0], color=['velocity_pseudotime'],  size=100, show=False, ax=axes[1][0], legend_fontsize=16)
@@ -115,10 +133,11 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--loom',    default='test', help='loom file path')
     parser.add_argument('-s', '--seurat',  default='test', help='seurat object path')
     parser.add_argument('-n', '--name',    default='test', help='output file name')
+    parser.add_argument('--species',       default='human', help='output file name')
     args = parser.parse_args()
     pandas2ri.activate()
     print(args)
-    if args.loom == None:
+    if args.loom == 'test' or args.seurat == 'test':
         parser.print_help()
         sys.exit(1)
 

@@ -106,14 +106,14 @@ if (args$assaytype=='RNA') {
                              subset=nFeature_RNA>1000 & nFeature_RNA<7000 & percent.mt<20)
     }
 } else {
-    cat('skip filtering cells for splicing matrix', '\n')
-    #if (args$species == 'fish') {
-    #    seurat.obj <- subset(seurat.obj, 
-    #                         subset=nFeature_spliced>1000 & nFeature_spliced<4000 & percent.mt<10)
-    #} else {
-    #    seurat.obj <- subset(seurat.obj, 
-    #                         subset=nFeature_spliced>1000 & nFeature_spliced<8000 & percent.mt<20)
-    #}
+    if (args$species == 'fish') {
+        seurat.obj <- subset(seurat.obj, 
+                             subset=nFeature_spliced>1000 & nFeature_spliced<4000 & percent.mt<10)
+    } else {
+        cat('skip filtering cells for splicing matrix of human dataset', '\n')
+        #seurat.obj <- subset(seurat.obj, 
+        #                     subset=nFeature_spliced>1000 & nFeature_spliced<8000 & percent.mt<20)
+    }
 }
 
 print(dim(seurat.obj))
