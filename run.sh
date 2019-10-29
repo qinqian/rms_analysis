@@ -246,14 +246,14 @@ main() {
 
   #Rscript velocity_pipeline.R --seuratobj ../results/seurat_intersect_velocity/Tumor24_seu.rds --velobj ../results/seurat_intersect_velocity/Tumor24_vel.rds --label Tumor24_velocityR --clusterlabel Tumor24 --species fish
   #Rscript velocity_pipeline.R --seuratobj ../results/seurat_intersect_velocity/Tumor21_seu.rds --velobj ../results/seurat_intersect_velocity/Tumor21_vel.rds --label Tumor21_velocityR --clusterlabel Tumor21 --species fish
-  Rscript velocity_pipeline.R --seuratobj ../results/seurat_intersect_velocity/Tumor22_seu.rds --velobj ../results/seurat_intersect_velocity/Tumor22_vel.rds --label Tumor22_velocityR --clusterlabel Tumor22 --species fish
+  #Rscript velocity_pipeline.R --seuratobj ../results/seurat_intersect_velocity/Tumor22_seu.rds --velobj ../results/seurat_intersect_velocity/Tumor22_vel.rds --label Tumor22_velocityR --clusterlabel Tumor22 --species fish
 
-  #labels=(Tumor24 Tumor21 Tumor22)
-  #for index in ${!labels[*]}; do
-  #    echo python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$index]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$index]}_seu.rds -n ${labels[$index]} --species fish
-  #    python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$index]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$index]}_seu.rds -n ${labels[$index]} --species fish
-  #   #break
-  #done
+  labels=(Tumor24 Tumor21 Tumor22)
+  for index in ${!labels[*]}; do
+      echo python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$index]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$index]}_seu.rds -n ${labels[$index]} --species fish
+      python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$index]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$index]}_seu.rds -n ${labels[$index]} --species fish
+     #break
+  done
 
   ####################
   ## for human
