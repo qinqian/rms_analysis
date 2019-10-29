@@ -13,6 +13,7 @@ library(UpSetR)
 set.seed(100)
 
 ## human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
+
 get_args = function(x) {
     require(argparse)
     parser = ArgumentParser(description='seurat normalization')
@@ -34,8 +35,11 @@ if (length(args$seurat) == 0 || args$vel == '' || args$label == '') {
 }
 
 
-## args$seurat = '../results/seurat_intersect_velocity/20190624_seurat-object_MAST111_seu.rds'
-## args$vel = '../results/seurat_intersect_velocity/20190624_seurat-object_MAST111_vel.rds'
+#args$seurat = '../results/seurat_intersect_velocity/Tumor24_seu.rds'
+#args$vel = '../results/seurat_intersect_velocity/Tumor24_vel.rds'
+#args$label = 'Tumor24'
+#args$clusterlabel = 'Tumor24'
+#args$species = 'fish'
 ## args$label = '20190624_seurat-object_MAST111_seu.rds'
 
 obj = readRDS(args$seurat)
@@ -50,38 +54,50 @@ if (length(names(vel@tools))!=0) {
 }
 
 velocity = Tool(object=vel, slot = "RunVelocity")
-colortab = read.table('color_table.xls', sep='\t', header=T)
 
-## args$clusterlabel = c(1, 2, 3, 1, 4, 5, 6, 3, 7)
-## args$clusterlabel = 'MAST111'
-
-metalabels = c("GROUND", "Hypoxia", "EMT",  "G1S", "UNASSIGNED", "G2M",  "MUSCLE", "INTERFERON", "PROLIF", "Histones")
 metacolors = c(rgb(166, 166, 166, maxColorValue = 255),
-           rgb(241, 149, 69, maxColorValue = 255),
-           rgb(103, 35,  102, maxColorValue = 255),
-           rgb(52, 101, 252, maxColorValue = 255),
-           rgb(242, 242, 242, maxColorValue = 255),
-           rgb(52, 101, 252, maxColorValue = 255),
-           rgb(233, 63,  51, maxColorValue = 255),
-           rgb(65, 129,  7, maxColorValue = 255),
-           rgb(52, 101, 252, maxColorValue = 255),
-           rgb(253, 247, 49, maxColorValue = 255))
+               rgb(241, 149, 69, maxColorValue = 255),
+               rgb(103, 35,  102, maxColorValue = 255),
+               rgb(52, 101, 252, maxColorValue = 255),
+               rgb(242, 242, 242, maxColorValue = 255),
+               rgb(52, 101, 252, maxColorValue = 255),
+               rgb(233, 63,  51, maxColorValue = 255),
+               rgb(65, 129,  7, maxColorValue = 255),
+               rgb(52, 101, 252, maxColorValue = 255),
+               rgb(253, 247, 49, maxColorValue = 255))
+if (args$species == 'human') {
+    metalabels = c("GROUND", "Hypoxia", "EMT",  "G1S", "UNASSIGNED", "G2M",  "MUSCLE", "INTERFERON", "PROLIF", "Histones")
+    colortab = read.table('color_table.xls', sep='\t', header=T)
+    cluster = as.character(colortab[,args$clusterlabel])
+    labels = na.omit(metalabels[match(cluster, metalabels)])
+    colors = na.omit(metacolors[match(cluster, metalabels)])
+    ident.colors = colors
+    names(ident.colors) <- levels(obj@meta.data$RNA_snn_res.0.8)
+    cell.colors         <- ident.colors[obj@meta.data$RNA_snn_res.0.8]
+} else {
+    colortab = read.delim('fish_color_table.txt', sep='\t', header=T, stringsAsFactors=F)
+    metalabels = unique(c(colortab[,2], colortab[,4], colortab[,3]))
+    cluster = as.character(colortab[, args$clusterlabel])
+    labels = metalabels[match(cluster, metalabels)]
+    colors = metacolors[match(cluster, metalabels)]
+    ident.colors = colors
+    names(ident.colors) <- levels(obj@meta.data$seurat_clusters)
+    cell.colors         <- ident.colors[obj@meta.data$seurat_clusters]
+}
 
-cluster = as.character(colortab[,args$clusterlabel])
-labels = na.omit(metalabels[match(cluster, metalabels)])
-colors = na.omit(metacolors[match(cluster, metalabels)])
-
-ident.colors = colors
-print(ident.colors)
-print(levels(obj@meta.data$RNA_snn_res.0.8))
-names(ident.colors) <- levels(obj@meta.data$RNA_snn_res.0.8)
-cell.colors <- ident.colors[obj@meta.data$RNA_snn_res.0.8]
-names(cell.colors) <- colnames(vel)
-
-embedvel = Embeddings(object=vel, reduction = "umap")
-embed = Embeddings(object=obj, reduction = "umap")
-rownames(embed) = rownames(embedvel)
-## embed = Embeddings(object=vel, reduction = "umap")
+if (args$species == 'human') {
+    ### for human use the seurat umap embedding from cDNA read count by log transformation by sara !!!
+    embedvel = Embeddings(object=vel, reduction = "umap")
+    embed = Embeddings(object=obj, reduction = "umap")
+    names(cell.colors) <- rownames(embedvel)
+    rownames(embed) = rownames(embedvel)
+} else {
+    ### for zebrafish use the seurat umap from splicing read count by SCT transformation by alvin !!!
+    embedvel = Embeddings(object=vel, reduction = "umap")
+    embed = Embeddings(object=vel, reduction = "umap")
+    names(cell.colors) <- rownames(embedvel)
+    rownames(embed) = rownames(embedvel)
+}
 
 pdf(paste0('../results/', name, '_velocity_tumoronly.pdf'), width=16, height=9)
 ## par(mfrow=c(1, 2), font=2, cex=1.3)
@@ -96,13 +112,4 @@ show.velocity.on.embedding.cor(emb = embed,
     			       min.grid.cell.mass = 0.5, grid.n = 40, arrow.lwd = 1, do.par = F, cell.border.alpha = 0.3)
 legend(max(embed[,1])*1.15, max(embed[,2])*1.0, legend=paste0(names(ident.colors), '_', labels), pch=19, col=ident.colors, bty = "n")
 title(args$label)
-## show.velocity.on.embedding.cor(emb = Embeddings(object=vel, reduction = "tsne"), n.cores=10,
-##     			       vel = Tool(object=vel, slot = "RunVelocity"), 
-##     			       n = 200, scale = "sqrt", 
-##     			       cell.colors = ac(cell.colors, alpha = 0.5),
-##     			       cex=1,
-##     			       arrow.scale = 2, 
-##     			       show.grid.flow = TRUE, 
-##     			       min.grid.cell.mass = 0.5, grid.n = 40, arrow.lwd = 1, do.par = FALSE, cell.border.alpha = 0.1)
-## legend('topright', legend=levels(obj@meta.data$RNA_snn_res.0.8), pch=19, col=ident.colors)
 dev.off()

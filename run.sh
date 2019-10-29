@@ -217,43 +217,55 @@ main() {
   ####################
   ## for zebrafish
   ####################
-  # Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' --label Tumor24raw --finalres 0.05 --tumor -1 &
-  # Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' --label Tumor21raw --finalres 0.1 --tumor -1 &
-  # Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' --label Tumor22raw --finalres 0.1 --tumor -1 &
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix/' --label Tumor24 --finalres 0.05 --tumor 0 3
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor21 --finalres 0.1 --tumor 0 1 
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor22 --finalres 0.1 --tumor 0 1 4 
 
-  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' --label Tumor24 --finalres 0.05 --tumor 0 3
-  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' --label Tumor21 --finalres 0.1 --tumor 0 1 &
-  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix' --label Tumor22 --finalres 0.1 --tumor 0 1 4 &
-
-  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color/velocyto/Tumor24_zebrafish_with_orf_color.loom' --label Tumor24_velocity --finalres 0.05 --tumor -1 --assaytype spliced &
-  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color/velocyto/Tumor21_zebrafish_with_orf_color.loom' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color/velocyto/Tumor21_2ndlibrary_zebrafish_with_orf_color.loom' --label Tumor21_velocity --finalres 0.1 --tumor -1 --assaytype spliced &
-  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color/velocyto/Tumor22_zebrafish_with_orf_color.loom' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color/velocyto/Tumor22_2ndlibrary_zebrafish_with_orf_color.loom' --label Tumor22_velocity --finalres 0.1 --tumor -1 --assaytype spliced &
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/velocyto/Tumor24_zebrafish_with_orf_color_v2.loom' --label Tumor24_velocity --finalres 0.05 --tumor -1 --assaytype spliced 
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2/velocyto/Tumor21_zebrafish_with_orf_color_v2.loom' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/velocyto/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2.loom' --label Tumor21_velocity --finalres 0.1 --tumor -1 --assaytype spliced 
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2/velocyto/Tumor22_zebrafish_with_orf_color_v2.loom' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/velocyto/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2.loom' --label Tumor22_velocity --finalres 0.1 --tumor -1 --assaytype spliced
 
   #intersect between seurat and velocity cell barcodes
-  #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor24_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor24_velocity_seurat_obj_tumors.rds' --label Tumor24 
-  #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor21_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor21_velocity_seurat_obj_tumors.rds' --label Tumor21 
-  #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor22_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor22_velocity_seurat_obj_tumors.rds' --label Tumor22
+  #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor24_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor24_velocity_seurat_obj_tumors.rds' --label Tumor24 #2>&1 >Tumor24_intersect.log 
+  #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor21_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor21_velocity_seurat_obj_tumors.rds' --label Tumor21 #2>&1 >Tumor21_intersect.log 
+  #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor22_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor22_velocity_seurat_obj_tumors.rds' --label Tumor22 # 2>&1 >Tumor22_intersect.log &
 
-  looms=(`ls ../results/seurat_intersect_velocity/*loom`)
-  saras=(`ls ../results/seurat_intersect_velocity/*seu.rds`)
-  labels=(Tumor24 Tumor21 Tumor22)
-  for index in ${!saras[*]}; do
-      label=$(basename ${looms[$index]})
-      echo python velocity_pipeline.py -l ${looms[$index]} -s ${saras[$index]} -n ${labels[$index]} #2>&1 > ${label/.loom/}_scvelo.logs & # output anndata for stream analysis
-  #    python stream_pipeline.py
-  #    break
-  done
+  #n=0
+  #for index in ../results/seurat_intersect_velocity/*seu_markers*xls; do 
+  #    let n++
+  #    label=$(basename $index)
+  #    if [ $n -gt 10 ]; then
+  #        echo Rscript gsea_pipeline.R --seuratde $index --label $label --species fish
+  #        Rscript gsea_pipeline.R --seuratde $index --label $label --species fish
+  #        break
+  #    else
+  #        echo 1
+  #        #echo Rscript gsea_pipeline.R --seuratde $index --label $label 
+  #    fi
+  #done
+
+  #Rscript velocity_pipeline.R --seuratobj ../results/seurat_intersect_velocity/Tumor24_seu.rds --velobj ../results/seurat_intersect_velocity/Tumor24_vel.rds --label Tumor24_velocityR --clusterlabel Tumor24 --species fish
+  #Rscript velocity_pipeline.R --seuratobj ../results/seurat_intersect_velocity/Tumor21_seu.rds --velobj ../results/seurat_intersect_velocity/Tumor21_vel.rds --label Tumor21_velocityR --clusterlabel Tumor21 --species fish
+  Rscript velocity_pipeline.R --seuratobj ../results/seurat_intersect_velocity/Tumor22_seu.rds --velobj ../results/seurat_intersect_velocity/Tumor22_vel.rds --label Tumor22_velocityR --clusterlabel Tumor22 --species fish
+
+  #labels=(Tumor24 Tumor21 Tumor22)
+  #for index in ${!labels[*]}; do
+  #    echo python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$index]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$index]}_seu.rds -n ${labels[$index]} --species fish
+  #    python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$index]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$index]}_seu.rds -n ${labels[$index]} --species fish
+  #   #break
+  #done
 
   ####################
   ## for human
   ####################
   # Rscript seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/20190418_MAST139_5Kcells_hg19/outs/filtered_feature_bc_matrix --label MAST139 --finalres 0.8 --tumor -1 --species human 1>mast139.log 2>&1 &
-  # Rscript seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/20190418_MAST111_5Kcells_hg19/outs/filtered_feature_bc_matrix --label MAST111 --finalres 0.8 --tumor -1 --species human 1>mast111.log 2>&1 &
+  #Rscript seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/20190418_MAST111_5Kcells_hg19/outs/filtered_feature_bc_matrix --label MAST111 --finalres 0.8 --tumor -1 --species human 1>mast111.log 2>&1 &
+
   # for i in `cut -f 1 /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/final_list.txt | grep -v "111" | grep -v "139"`; do
   #     ls -d /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}
   #     Rscript seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}/outs/filtered_feature_bc_matrix --label ${i} --finalres 0.8 --tumor -1 --species human 1>${i}.log 2>&1
   # done
-  # Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/20190418_MAST139_5Kcells_hg19/velocyto/20190418_MAST139_5Kcells_hg19.loom' --label MAST139_velocity --finalres 0.8 --tumor -1 --assaytype spliced --species human 1>mast139_vel.log 2>&1 &
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/20190418_MAST139_5Kcells_hg19/velocyto/20190418_MAST139_5Kcells_hg19.loom' --label MAST139_velocity --finalres 0.8 --tumor -1 --assaytype spliced --species human # 1>mast139_vel.log 2>&1 &
   # Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/20190418_MAST111_5Kcells_hg19/velocyto/20190418_MAST111_5Kcells_hg19.loom' --label MAST111_velocity --finalres 0.8 --tumor -1 --assaytype spliced --species human 1>mast111_vel.log 2>&1 &
 
   #for i in /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/*/velocyto/*loom; do
@@ -296,8 +308,8 @@ main() {
 
   # lisa
   #conda activate lisa
-  cd ../results/gsea/lisa/
-  bash run.sh
+  #cd ../results/gsea/lisa/
+  #bash run_lisa.sh
 
   # R deterministic modeling of human velocity
   #looms=(`ls ../results/seurat_intersect_velocity/*vel.rds`)
@@ -324,13 +336,13 @@ main() {
 
   #looms=(`ls ../results/seurat_intersect_velocity/*vel.rds`)
   #saras=(`ls ../results/seurat_intersect_velocity/*seu.rds`)
-  #labels=(RH74.10cells MAST111 MAST139 MAST35 MAST39 MAST85 MAST95 MSK82489 RH74 MAST85.1cell)
+  #labels=(RH74.10cells MAST111 MAST139 MAST35 MAST39 MAST85 MAST95 MSK82489 RH74 MAST85.1cell Tumor21 Tumor22 Tumor24)
   #for index in ${!saras[*]}; do
   #    # echo $index
   #    ls ${saras[$index]} ${looms[$index]}
   #    #label=$(basename ${saras[$index]})
   #    echo bsub -J humanvelR -n 6 -q big -M 32000 "bash ${src}/velocity_r.sh ${saras[$index]} ${looms[$index]} ${labels[$index]}_velR ${labels[$index]}" 
-  #    bsub -J humanvelR -n 6 -q big -M 32000 "bash ${src}/velocity_r.sh ${saras[$index]} ${looms[$index]} ${labels[$index]}_velR ${labels[$index]}" 
+  #    #bsub -J humanvelR -n 6 -q big -M 32000 "bash ${src}/velocity_r.sh ${saras[$index]} ${looms[$index]} ${labels[$index]}_velR ${labels[$index]}" 
   #    #break
   #done
 
@@ -342,11 +354,14 @@ main() {
   #labels=(RH74-10cells MAST111 MAST139 MAST35 MAST39 MAST85 MAST95 MSK82489 RH74 MAST85-1cell)
   #for index in ${!saras[*]}; do
   #    label=$(basename ${looms[$index]})
-  #    echo python velocity_pipeline.py -l ${looms[$index]} -s ${saras[$index]} -n ${labels[$index]} #2>&1 > ${label/.loom/}_scvelo.logs & # output anndata for stream analysis
-  ##    python stream_pipeline.py
-  ##    break
+  #    #echo python velocity_pipeline.py -l ${looms[$index]} -s ${saras[$index]} -n ${labels[$index]} #2>&1 > ${label/.loom/}_scvelo.logs & # output anndata for stream analysis
+  #    python stream_pipeline.py -s ${saras[$index]} --name ${labels[$index]}
+  #    #break
   #done
+
+  #cd ../results/gsea/lisa/
+  #${src}/run_genewalk.sh
 }
- 
+
 main
 

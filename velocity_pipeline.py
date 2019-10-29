@@ -70,9 +70,14 @@ def load_seurat_umap(args, test):
         clusters = pandas2ri.ri2py(r['data.frame'](test_seu.slots['meta.data']).rx2('seurat_clusters'))[test[1]]
 
     print(clusters)
-    reductions = pandas2ri.ri2py(r['data.frame'](r['slot'](test_seu.slots['reductions'].rx2('umap'), 'cell.embeddings')))
-
-    test[0].obsm['X_umap']  = reductions.loc[test[1], :].values
+    if args.species == 'human':
+        reductions = pandas2ri.ri2py(r['data.frame'](r['slot'](test_seu.slots['reductions'].rx2('umap'), 'cell.embeddings')))
+        test[0].obsm['X_umap']  = reductions.loc[test[1], :].values
+        red = reductions.loc[test[1], :]
+    else:   # fish used the spliced umap
+        reductions = test[0].obsm['umap_cell_embeddings'] 
+        test[0].obsm['X_umap']  = test[0].obsm['umap_cell_embeddings']  ## already filtered again by scvelo, no need [test[1],:]
+        red = pd.DataFrame(reductions)
 
     print(pd.DataFrame(test[0].obsm['X_umap']).describe())
     #test[0].obs['clusters'] = clusters.values
@@ -83,7 +88,6 @@ def load_seurat_umap(args, test):
     sc.tl.paga(test[0])
     sc.tl.paga(test[0], groups='clusters', use_rna_velocity=False)
     pos = test[0].obsm['X_umap']
-    red = reductions.loc[test[1], :]
     pos_raw = []
     for i in sorted(clusters.unique()):
         redt = red.loc[(clusters==i), :]

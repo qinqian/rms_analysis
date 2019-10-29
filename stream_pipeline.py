@@ -41,7 +41,9 @@ def load_stream(test, args, run=True):
     st.plot_flat_tree(test[0], save_fig=True, fig_name=f'{args.name}_stream_flattree.pdf')
     st.plot_visualization_2D(test[0], fig_legend_ncol=9, save_fig=True, fig_name=f'{args.name}_stream_umap_branch.pdf', color_by='branch')
     ## st.subwaymap_plot(test[0], root='S1', fig_legend_ncol=6) 
+    print('stream plot...')
     st.stream_plot(test[0], root='S1',fig_legend_ncol=9, save_fig=True, fig_name=f'{args.name}_stream.pdf')
+    print('done')
 
 
 if __name__ == '__main__':
@@ -68,4 +70,3 @@ if __name__ == '__main__':
         test.append(np.load(f'../results/{args.name}_velocity.npy'))
         clusters, reductions, pos = load_seurat_umap(args, test)
         load_stream(test, args, True)
-
