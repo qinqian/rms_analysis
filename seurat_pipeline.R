@@ -1,20 +1,21 @@
 library(argparse)
 library(Seurat)
-library(gdata)
-library(tidyverse)
-library(Matrix)
+library(SeuratWrappers)
+## library(gdata)
+## library(tidyverse)
+## library(Matrix)
 library(clustree)
 library(pheatmap)
 library(foreach)
-library(SeuratWrappers)
-library(garnett)
+## library(garnett)
 library(fgsea)
-library(cellassign)
+## library(cellassign)
 library(UpSetR)
 library(clusterProfiler)
 library(fgsea)
 source("functions.R")
 set.seed(100)
+library(tidyverse)
 
 ## human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
 get_args = function(x) {
@@ -26,6 +27,7 @@ get_args = function(x) {
     parser$add_argument('--finalres', dest='res', default=0.05, type='double')
     parser$add_argument('--tumor', dest='tumor', metavar='T', type='integer', nargs='+')
     parser$add_argument('--species', dest='species', type='character', default='fish')
+    parser$add_argument('--transform', dest='trans', type='character', default='SCT')
     args = parser$parse_args()
     args
 }
@@ -36,17 +38,21 @@ if (length(args$seurat) == 0 || args$label == '') {
     q()
 }
 
-
 ## args$seurat = '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color/outs/filtered_feature_bc_matrix'
-## args$label = 'tumor24'
+## args$seurat = '/PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/20190801_MAST85-1cell_5Kcells_hg19/outs/filtered_feature_bc_matrix'
+## args$label = '20190801_MAST85-1cell_5Kcells_hg19'
+## args$species = 'human'
+## args$res = 0.8
+## args$trans = 'SCT'
+## args$trans = 'Log'
 ## args$res = 0.05
-print(args)
+## args$assaytype = 'spliced'
 
 all_markers_final = readRDS("../results/final_manual_markers.RDS")
+
 if (length(args$seurat) > 1) {
     libraries = paste0("Library", seq(2))  # c("sort", 'bulk')
     if (args$assaytype == 'RNA') {
-        print('load 1')
         seurat.obj1 <- Read10X(args$seurat[1])
         seurat.obj1 <- CreateSeuratObject(counts=seurat.obj1,
                                           project=libraries[1], min.cells=3, min.features=10)
@@ -65,11 +71,12 @@ if (length(args$seurat) > 1) {
     seurat.obj  <- merge(seurat.obj1, seurat.obj2, add.cell.ids = libraries, project = args$label)
 } else {
     if (args$assaytype == 'RNA') {
-        seurat.obj <- Read10X(args$seurat)
+        seurat.obj <- Read10X(args$seurat[1])
         seurat.obj <- CreateSeuratObject(counts=seurat.obj,
                                          project=args$label, min.cells=3, min.features=10)
     } else {
-        seurat.obj <- ReadVelocity(args$seurat)
+        print(args$seurat)
+        seurat.obj <- ReadVelocity(args$seurat[1])
         seurat.obj <- as.Seurat(seurat.obj)
     }
 }
@@ -96,14 +103,18 @@ hist(seurat.obj@meta.data$percent.mt,  xlab="Mitochondria ratio", ylab="Cell bar
 dev.off()
 
 print(dim(seurat.obj))
-
 if (args$assaytype=='RNA') {
     if (args$species == 'fish') {
         seurat.obj <- subset(seurat.obj, 
                              subset=nFeature_RNA>1000 & nFeature_RNA<4000 & percent.mt<10)
     } else {
-        seurat.obj <- subset(seurat.obj, 
-                             subset=nFeature_RNA>1000 & nFeature_RNA<7000 & percent.mt<20)
+        if (args$trans == 'SCT') {
+            seurat.obj <- subset(seurat.obj, 
+                                 subset=nFeature_RNA>1000 & nFeature_RNA<7000 & percent.mt<20)
+        } else {
+            seurat.obj <- subset(seurat.obj, 
+                                 subset=nFeature_RNA>1000 & nFeature_RNA<7000 & percent.mt<10)
+        }
     }
 } else {
     if (args$species == 'fish') {
@@ -118,8 +129,18 @@ if (args$assaytype=='RNA') {
 
 print(dim(seurat.obj))
 
-seurat.obj = process_standard(seurat.obj, norm=F, assaytype=args$assaytype,
-                              output=paste0('../results/', args$label, '_pc_jackstraw.pdf'))
+print('test a................')
+if (args$trans == 'SCT') {
+    seurat.obj = process_standard(seurat.obj, norm=F, assaytype=args$assaytype,
+                                  output=paste0('../results/', args$label, '_pc_jackstraw.pdf'))
+} else {
+    seurat.obj = NormalizeData(seurat.obj)
+    seurat.obj = FindVariableFeatures(seurat.obj, selection.method='vst', nfeatures=2000)
+    seurat.obj <- ScaleData(seurat.obj, vars.to.regress = "percent.mt")
+}
+
+print('test b................')
+
 pdf(paste0("../results/", args$label, "_decide_resolution.pdf"), width=6, height=10)
 clustree(seurat.obj, prefix='SCT_snn_res.')
 dev.off()
