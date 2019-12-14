@@ -51,7 +51,6 @@ system('mkdir -p ../results/gsea/lisa')
 gsea.results = list()
 print(gsea.results)
 
-
 for (cluster in sort(unique(markers.final$cluster))) {
     print(cluster)
     gsea.results[[cluster]] = list()
@@ -76,7 +75,6 @@ for (cluster in sort(unique(markers.final$cluster))) {
         summarize(stat=mean(avg_logFC)) %>%
         arrange(desc(stat)) %>% filter(stat>0.2)
     cluster_stat = deframe(cluster_stat)
-
 
     cluster_stat2 = deframe(cluster_stat2)
     test = fgsea(pathways=pathways.hallmark, stats=cluster_stat, nperm=1000)

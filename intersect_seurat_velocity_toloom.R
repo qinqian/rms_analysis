@@ -4,7 +4,6 @@ source('functions.R')
 set.seed(100)
 library(loomR)
 
-
 get_args = function(x) {
     require(argparse)
     parser = ArgumentParser(description='seurat normalization')
@@ -84,13 +83,15 @@ seu.markers = FindAllMarkers(seu, only.pos=T, min.pct=0.1,
                              test.use='MAST',
                              ## assay='SCT', slot='data', #slot='scale.data',
                              random.seed=100, logfc.threshold = 0.1)
+human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
+seu.markers    = cbind(seu.markers, human_ortholog[match(seu.markers$gene, human_ortholog$Gene), ])
 
 vel <- recluster.withtree(vel, name=args$label)
 vel <- FindClusters(object=vel, resolution=args$res)
-vel.markers = FindAllMarkers(vel, only.pos=T, min.pct=0.1,
-                             test.use='MAST',
-                             assay='SCT', slot='data', #slot='scale.data',
-                             random.seed=100, logfc.threshold = 0.1)
+#vel.markers = FindAllMarkers(vel, only.pos=T, min.pct=0.1,
+#                             test.use='MAST',
+#                             assay='SCT', slot='data', #slot='scale.data',
+#                             random.seed=100, logfc.threshold = 0.1)
 
 system('mkdir -p ../results/seurat_intersect_velocity')
 
@@ -100,7 +101,7 @@ write.table(seu.markers, file=paste0('../results/seurat_intersect_velocity/', ar
 
 ## this is for Seurat Wrapper of velocity
 saveRDS(vel, file=paste0('../results/seurat_intersect_velocity/', args$label, '_vel.rds'))
-write.table(vel.markers, file=paste0('../results/seurat_intersect_velocity/', args$label, paste0('_vel_markers_tumoronly_res', args$res, '.xls')), sep='\t', quote=F)
+#write.table(vel.markers, file=paste0('../results/seurat_intersect_velocity/', args$label, paste0('_vel_markers_tumoronly_res', args$res, '.xls')), sep='\t', quote=F)
 
 ## fill in spliced/unspliced information for velocity object for scvelo analysis
 vel.loom = as.loom(vel, filename=paste0('../results/seurat_intersect_velocity/', args$label, '_vel.loom'), verbose=T)
@@ -108,7 +109,7 @@ vel.loom$add.layer(
              layers = list(
                  'spliced' = as.matrix(
                      x = t(
-                         x = as.data.frame(
+                        x = as.data.frame(
                              vel$spliced@data
                          )[rownames(vel$SCT), colnames(vel$SCT)]
                      )

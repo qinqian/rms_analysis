@@ -55,17 +55,17 @@ if (length(names(vel@tools))!=0) {
 
 velocity = Tool(object=vel, slot = "RunVelocity")
 
-metacolors = c(rgb(166, 166, 166, maxColorValue = 255),
-               rgb(241, 149, 69, maxColorValue = 255),
-               rgb(103, 35,  102, maxColorValue = 255),
-               rgb(52, 101, 252, maxColorValue = 255),
-               rgb(242, 242, 242, maxColorValue = 255),
-               rgb(52, 101, 252, maxColorValue = 255),
-               rgb(233, 63,  51, maxColorValue = 255),
-               rgb(65, 129,  7, maxColorValue = 255),
-               rgb(52, 101, 252, maxColorValue = 255),
-               rgb(253, 247, 49, maxColorValue = 255))
 if (args$species == 'human') {
+    metacolors = c(rgb(166, 166, 166, maxColorValue = 255),
+                   rgb(241, 149, 69, maxColorValue = 255),
+                   rgb(103, 35,  102, maxColorValue = 255),
+                   rgb(52, 101, 252, maxColorValue = 255),
+                   rgb(242, 242, 242, maxColorValue = 255),
+                   rgb(52, 101, 252, maxColorValue = 255),
+                   rgb(233, 63,  51, maxColorValue = 255),
+                   rgb(65, 129,  7, maxColorValue = 255),
+                   rgb(52, 101, 252, maxColorValue = 255),
+                   rgb(253, 247, 49, maxColorValue = 255))
     metalabels = c("GROUND", "Hypoxia", "EMT",  "G1S", "UNASSIGNED", "G2M",  "MUSCLE", "INTERFERON", "PROLIF", "Histones")
     colortab = read.table('color_table.xls', sep='\t', header=T)
     cluster = as.character(colortab[,args$clusterlabel])
@@ -75,9 +75,31 @@ if (args$species == 'human') {
     names(ident.colors) <- levels(obj@meta.data$RNA_snn_res.0.8)
     cell.colors         <- ident.colors[obj@meta.data$RNA_snn_res.0.8]
 } else {
+
+    metacolors = c(rgb(103, 35,  102, maxColorValue = 255),
+                   rgb(52, 101, 252, maxColorValue = 255),
+                   rgb(241, 149, 69, maxColorValue = 255),
+		   rgb(166, 166, 166, maxColorValue = 255),
+                   rgb(233, 63,  51, maxColorValue = 255),
+                   rgb(52, 101, 252, maxColorValue = 255),
+                   rgb(65, 129,  7, maxColorValue = 255),
+                   rgb(242, 242, 242, maxColorValue = 255),
+                   rgb(103, 35,  102, maxColorValue = 255),
+                   rgb(52, 101, 252, maxColorValue = 255), 
+                   rgb(103, 35,  102, maxColorValue = 255),
+                   rgb(241, 149, 69, maxColorValue = 255),
+                   rgb(233, 63,  51, maxColorValue = 255), 
+                   rgb(52, 101, 252, maxColorValue = 255)
+    )
+
+    print(metacolors)
     colortab = read.delim('fish_color_table.txt', sep='\t', header=T, stringsAsFactors=F)
-    metalabels = unique(c(colortab[,2], colortab[,4], colortab[,3]))
-    cluster = as.character(colortab[, args$clusterlabel])
+    metalabels = c("EMT", "MYC-N", "Hypoxia", "Ground", "MUSCLE", "Cell_cycle", "TNF", 'Unassigned', "EMT_ECM", "RhoA_Cell_cycle", "ECM_Invasion", "Hypoxia_TNF_SC", "Muscle_Prolif", "Prolif")
+
+    print(metalabels)
+    metalabels = metalabels[metalabels!='']
+    cluster = na.omit(as.character(colortab[, args$clusterlabel]))
+    cluster = cluster[cluster!='']
     labels = metalabels[match(cluster, metalabels)]
     colors = metacolors[match(cluster, metalabels)]
     ident.colors = colors
@@ -113,3 +135,4 @@ show.velocity.on.embedding.cor(emb = embed,
 legend(max(embed[,1])*1.15, max(embed[,2])*1.0, legend=paste0(names(ident.colors), '_', labels), pch=19, col=ident.colors, bty = "n")
 title(args$label)
 dev.off()
+

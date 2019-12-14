@@ -258,41 +258,41 @@ main() {
   ####################
   ## for human
   ####################
-  for i in `cut -f 1 /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/final_list.txt`; do
-      #ls -d /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}
-      if [ ! -s ../results/seurat/${i}_seurat_obj_tumors.rds ]; then
-	  #echo ../results/seurat/${i}_hg19_seurat_obj_tumors.rds
-          echo Rscript seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}/outs/filtered_feature_bc_matrix --label ${i} --finalres 0.8 --tumor -1 --species human #1>${i}.log 2>&1
-          #bsub -J humanvelR -n 6 -q big -M 32000 "Rscript ${src}/seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}/outs/filtered_feature_bc_matrix --label ${i} --finalres 0.8 --tumor -1 --species human 1>${i}.log 2>&1"
-      fi
-  done
+  #for i in `cut -f 1 /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/final_list.txt`; do
+  #    #ls -d /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}
+  #    #if [ ! -s ../results/seurat/${i}_seurat_obj_tumors.rds ]; then
+  #	  #echo ../results/seurat/${i}_hg19_seurat_obj_tumors.rds
+  #        echo Rscript seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}/outs/filtered_feature_bc_matrix --label ${i} --finalres 0.8 --tumor -1 --species human #1>${i}.log 2>&1
+  #        #bsub -J humanvelR -n 6 -q big -M 32000 "Rscript ${src}/seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/${i}/outs/filtered_feature_bc_matrix --label ${i} --finalres 0.8 --tumor -1 --species human 1>${i}.log 2>&1"
+  #    # fi
+  #done
 
   ## Generate V6 Seurat results
   #alvins=(`ls ../results/seurat/*hg19_*rds`)
   #saras=(`ls /data/langenau/human_rms_pdxs/seurat_objects/*rds`)
-  #labels=(RH74-10cells MAST111_5Kcells MAST139_5Kcells MAST35_5Kcells MAST39_5Kcells MAST85_5Kcells MAST95_10Kcells MSK82489_5Kcells RH74_5Kcells MAST85-1cell)
+  #labels=(RH74-10cells_5Kcells MAST111_5Kcells MAST139_5Kcells MAST35_5Kcells MAST39_5Kcells MAST85_5Kcells MAST95_10Kcells MSK82489_5Kcells RH74_5Kcells MAST85-1cell_5Kcells)
+
   #for index in ${!labels[*]}; do
   #    #echo $index ${labels[$index]} $(ls ../results/seurat/*${labels[$index]}_hg19_seurat_obj_tumors.rds) $(ls /data/langenau/human_rms_pdxs/seurat_objects/*$(echo ${labels[$index]} | cut -f 1 -d_ ).rds | tail -1)
   #    echo Rscript generate_v6_degenes.R --seuratobj1  $(ls ../results/seurat/*${labels[$index]}_hg19_seurat_obj_tumors.rds) --seuratobj2 $(ls /data/langenau/human_rms_pdxs/seurat_objects/*$(echo ${labels[$index]} | cut -f 1 -d_ ).rds | tail -1) --label ${labels[$index]} 
-  #    Rscript generate_v6_degenes.R --seuratobj1  $(ls ../results/seurat/*${labels[$index]}_hg19_seurat_obj_tumors.rds) --seuratobj2 $(ls /data/langenau/human_rms_pdxs/seurat_objects/*$(echo ${labels[$index]} | cut -f 1 -d_ ).rds | tail -1) --label ${labels[$index]} 
-  #    break
+  #    Rscript generate_v6_degenes.R --seuratobj1  $(ls ../results/seurat/*${labels[$index]}_hg19_seurat_obj_tumors.rds) --seuratobj2 $(ls /data/langenau/human_rms_pdxs/seurat_objects/*$(echo ${labels[$index]} | cut -f 1 -d_ ).rds | tail -1) --label ${labels[$index]}  &
   #done
-  
-  #for i in /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/*/velocyto/*loom; do
-  #	 echo $i
-  #      label=$(basename $i)
-  #      Rscript seurat_pipeline.R --seuratobj $i --label $label  --finalres 0.8 --tumor -1 --assaytype spliced --species human 1>${label}_vel.log 2>&1 # &
-  #done
+
+  # for i in /PHShome/qq06/alvin_singlecell/01_rms_projects/02_human/data/cellranger_counts/*/velocyto/*loom; do
+  #     echo $i
+  #     label=$(basename $i)
+  #     echo Rscript seurat_pipeline.R --seuratobj $i --label $label  --finalres 0.8 --tumor -1 --assaytype spliced --species human # 1>${label}_vel.log 2>&1 # &
+  # done
+
   #Rscript seurat_pipeline.R --seuratobj /data/langenau/human_rms_pdxs/20190801_MAST85-1cell_5Kcells_hg19/velocyto/20190801_MAST85-1cell_5Kcells_hg19.loom --label 20190801_MAST85-1cell --finalres 0.8 --tumor -1 --assaytype spliced --species human 1>20190801_MAST85-1cell.log 2>&1
   #Rscript seurat_pipeline.R --seuratobj /data/langenau/human_rms_pdxs/20190617_RH74-10cells_5Kcells_hg19/velocyto/20190617_RH74-10cells_5Kcells_hg19.loom --label 20190617_RH74-10cells --finalres 0.8 --tumor -1 --assaytype spliced --species human 1>20190617_RH74-10cells.log 2>&1
 
-
   #use Sara's processed datasets of Seurat objects /data/langenau/human_rms_pdxs/seurat_objects/
   #Rscript intersect_seurat_velocity_toloom.R --seuratobj /data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST111.rds --velobj ../results/seurat/MAST111_velocity_seurat_obj_tumors.rds --label MAST111 --species human 
-  #looms=(`ls ../results/seurat/*loom*rds`)
-  #saras=(`ls /data/langenau/human_rms_pdxs/seurat_objects/*rds`)
-  #n=0
-  #for index in ${!saras[*]}; do
+  # looms=(`ls ../results/seurat/*loom*rds`)
+  # saras=(`ls /data/langenau/human_rms_pdxs/seurat_objects/*rds`)
+  # n=0
+  # for index in ${!saras[*]}; do
   #    prefix=$(echo $(basename ${saras[$index]}) | cut -f 3 -d_ | sed -e 's/.rds//' | cut -f 1 -d-)
   #    #ls ${saras[$index]} ../results/seurat/*${prefix}*rds
   #    label=$(basename ${saras[$index]})
@@ -302,7 +302,7 @@ main() {
   #        echo Rscript intersect_seurat_velocity_toloom.R --seuratobj ${saras[$index]} --velobj ../results/seurat/*${prefix}*rds --label ${label/.rds/} --species human 
   #    #   break
   #    fi
-  #done
+  # done
   #Rscript intersect_seurat_velocity_toloom.R --seuratobj /data/langenau/human_rms_pdxs/seurat_objects/20190815_seurat-object_MAST85-1cell.rds --velobj ../results/seurat/20190801_MAST85-1cell_seurat_obj_tumors.rds --label 20190801_MAST85-1cell --species human 
   #Rscript intersect_seurat_velocity_toloom.R --seuratobj /data/langenau/human_rms_pdxs/seurat_objects/20190815_seurat-object_RH74-10cells.rds --velobj ../results/seurat/20190617_RH74-10cells_seurat_obj_tumors.rds --label 20190617_RH74-10cells --species human 
 
@@ -359,18 +359,95 @@ main() {
   #1. paga for layout the umap, scvelo for identification of root cells and trajectories by both velocity and stream
   #2. stream for trajectory analysis by using scvelo estimated starting points
   #look at scanpy_velocity_stream.ipynb for visualization of velocity and stream trajectories
-  #looms=(`ls ../results/seurat_intersect_velocity/*loom`)
-  #saras=(`ls ../results/seurat_intersect_velocity/*seu.rds`)
-  #labels=(RH74-10cells MAST111 MAST139 MAST35 MAST39 MAST85 MAST95 MSK82489 RH74 MAST85-1cell)
-  #for index in ${!saras[*]}; do
-  #    label=$(basename ${looms[$index]})
-  #    #echo python velocity_pipeline.py -l ${looms[$index]} -s ${saras[$index]} -n ${labels[$index]} #2>&1 > ${label/.loom/}_scvelo.logs & # output anndata for stream analysis
-  #    python stream_pipeline.py -s ${saras[$index]} --name ${labels[$index]}
-  #    #break
-  #done
+  looms=(`ls ../results/seurat_intersect_velocity/*loom`)
+  saras=(`ls ../results/seurat_intersect_velocity/*seu.rds`)
+  labels=(RH74-10cells MAST111 MAST139 MAST35 MAST39 MAST85 MAST95 MSK82489 RH74 MAST85-1cell)
+  mkdir -p ../results/velocity_dynamical/
+  for index in ${!saras[*]}; do
+      label=$(basename ${looms[$index]})
+      #echo python velocity_pipeline.py -l ${looms[$index]} -s ${saras[$index]} -n ${labels[$index]} #2>&1 > ${label/.loom/}_scvelo.logs & # output anndata for stream analysis
+      echo python velocity_pipeline_dynamical_latentime.py -l ${looms[$index]} -s ${saras[$index]} -n ${labels[$index]} #2>&1 > ${label/.loom/}_scvelo.logs & # output anndata for stream analysis
+      #python velocity_pipeline_dynamical_latentime.py -s ${saras[$index]} --name ${labels[$index]}
+      #break
+  done
 
   #cd ../results/gsea/lisa/
   #${src}/run_genewalk.sh
+
+  ## process new datasets
+  #cd /data/langenau/human_rms_pdxs/20191031_MSK72117tencell
+  #echo 'Lane,Sample,Index' > 20191031_MSK72117tencell.csv
+  #echo '1-4,20191031_MSK72117tencell,SI-GA-B8' >> 20191031_MSK72117tencell.csv
+  #cellranger mkfastq --id=20191031_MSK72117tencell \
+  #                   --localcores=8 \
+  #                   --localmem=64 \
+  #                   --run=/data/langenau/human_rms_pdxs/20191031_MSK72117tencell \
+  #                   --csv=20191031_MSK72117tencell.csv
+
+  #bash ${src}/cellranger.sh /data/langenau/human_rms_pdxs/20191031_MSK72117tencell/20191031_MSK72117tencell/outs/fastq_path/HL3F7BGXC/ 20191031_MSK72117tencell 20191031_MSK72117tencell_cellranger_mixture /data/molpath/software/10x/refdata-cellranger-hg19-and-mm10-3.0.0/
+  #bash ${src}/cellranger.sh /data/langenau/human_rms_pdxs/20191031_MSK72117tencell/20191031_MSK72117tencell/outs/fastq_path/HL3F7BGXC/ 20191031_MSK72117tencell 20191031_MSK72117tencell_cellranger /data/langenau/alvin_singlecell/01_rms_projects/02_human/data/genome/refdata-cellranger-hg19-3.0.0/
+  #low cell ratio, rerun with 5K forced cells
+  #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ${src}/cellranger.sh /data/langenau/human_rms_pdxs/20191031_MSK72117tencell/20191031_MSK72117tencell/outs/fastq_path/HL3F7BGXC/ 20191031_MSK72117tencell 20191031_MSK72117tencell_cellranger_5K /data/molpath/software/10x/refdata-cellranger-hg19-and-mm10-3.0.0/"
+  #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ${src}/cellranger.sh /data/langenau/human_rms_pdxs/20191031_MSK72117tencell/20191031_MSK72117tencell/outs/fastq_path/HL3F7BGXC/ 20191031_MSK72117tencell 20191031_MSK72117tencell_cellranger_5K_mixture /data/langenau/alvin_singlecell/01_rms_projects/02_human/data/genome/refdata-cellranger-hg19-3.0.0/"
+
+  #cd /data/langenau/human_rms_pdxs/20191031_MSK74711/
+  #echo 'Lane,Sample,Index' > 20191031_MSK74711.csv
+  #echo '1-4,20191031_MSK74711,SI-GA-B9' >> 20191031_MSK74711.csv
+  #cellranger mkfastq --id=20191031_MSK74711 \
+  #                   --localcores=8 \
+  #                   --localmem=64 \
+  #                   --run=/data/langenau/human_rms_pdxs/20191031_MSK74711 \
+  #                   --csv=20191031_MSK74711.csv
+
+  #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ${src}/cellranger.sh /data/langenau/human_rms_pdxs/20191031_MSK74711/20191031_MSK74711/outs/fastq_path/HL2THBGXC/ 20191031_MSK74711 20191031_MSK74711_cellranger_mixture /data/molpath/software/10x/refdata-cellranger-hg19-and-mm10-3.0.0/"
+  #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ${src}/cellranger.sh /data/langenau/human_rms_pdxs/20191031_MSK74711/20191031_MSK74711/outs/fastq_path/HL2THBGXC/ 20191031_MSK74711 20191031_MSK74711_cellranger /data/langenau/alvin_singlecell/01_rms_projects/02_human/data/genome/refdata-cellranger-hg19-3.0.0/
+
+  # run through sara's pipeline
+  # Rscript seurat_sara_pipeline.R --seuratobj "../data/cellranger_counts/20191031_MSK74711_cellranger/outs/filtered_feature_bc_matrix"  \
+  #                                --mixtureobj "../data/cellranger_counts/20191031_MSK74711_cellranger_mixture/outs/filtered_feature_bc_matrix" --label 20191031_MSK74711
+
+  #Rscript seurat_sara_pipeline.R --seuratobj "../data/cellranger_counts/20191031_MSK72117tencell_cellranger/outs/filtered_feature_bc_matrix/" \
+  #                               --mixtureobj "../data/cellranger_counts/20191031_MSK72117tencell_cellranger_mixture/outs/filtered_feature_bc_matrix/" --label 20191031_MSK72117tencell
+
+  #mkdir -p ../data/cellranger_counts/MAST139_1cells
+  #cd ../data/cellranger_counts/MAST139_1cells
+  #bs download run --id 191551362 --output .
+
+  #echo 'Lane,Sample,Index' > MAST139_1cells.csv
+  #echo '1-4,MAST139_1cells,SI-GA-C7' >> MAST139_1cells.csv
+  #cellranger mkfastq --id=MAST139_1cells \
+  #                   --localcores=8 \
+  #                   --localmem=64 \
+  #                   --run=/data/langenau/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/MAST139_1cells \
+  #                   --csv=MAST139_1cells.csv
+
+  echo 'Lane,Sample,Index' > MAST118_final.csv
+  echo '1-4,MAST118,SI-GA-B6' >> MAST118_final.csv
+  cellranger mkfastq --id=MAST118 \
+                    --localcores=8 \
+                    --localmem=64 \
+                    --run=/data/langenau/human_rms_pdxs/20191203_MAST118_FINAL \
+                    --csv=MAST118_final.csv
+
+
+   #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ../../rms_codes/cellranger.sh /data/langenau/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/MAST139_1cells/MAST139_1cells/outs/fastq_path/HL73YBGXC/MAST139_1cell/ Tumor24 MAST139_1cells /data/langenau/alvin_singlecell/01_rms_projects/02_human/data/genome/refdata-cellranger-hg19-3.0.0/"
+   #bash ../../rms_codes/cellranger.sh /data/langenau/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/MAST139_1cells/MAST139_1cells/outs/fastq_path/HL73YBGXC/MAST139_1cell/ Tumor24 MAST139_1cells /data/langenau/alvin_singlecell/01_rms_projects/02_human/data/genome/refdata-cellranger-hg19-3.0.0/
+   #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ../../rms_codes/cellranger.sh /data/langenau/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/MAST139_1cells_fastq/MAST139_1cells/outs/fastq_path/HL73YBGXC/MAST139_1cell/ Tumor24 MAST139_1cells_mixture /data/molpath/software/10x/refdata-cellranger-hg19-and-mm10-3.0.0/"
+
+   #Rscript seurat_sara_pipeline.R --seuratobj "../data/cellranger_counts/MAST139_1cells/outs/filtered_feature_bc_matrix/" \
+   #                               --mixtureobj "../data/cellranger_counts/MAST139_1cells_mixture/outs/filtered_feature_bc_matrix/" --label MAST139_1cells
+
+   #for i in MAST139_1cells; do
+   ##for i in 20191031_MSK72117tencell_cellranger; do
+   ##for i in 20191031_MSK74711_cellranger; do
+   #   velocyto run10x /PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/${i} /data/langenau/alvin_singlecell/01_rms_projects/02_human/data/genome/refdata-cellranger-hg19-3.0.0/genes/genes.gtf # 2>&1 > ${i}.logs &
+   #done 
+
+   #for i in 20191031_MSK72117tencell_cellranger 20191031_MSK74711_cellranger MAST139_1cells; do
+   #for i in 20191031_MSK74711_cellranger; do
+   #    Rscript seurat_pipeline.R --seuratobj /PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/${i}/velocyto/* --label $i --finalres 0.8 --tumor -1 --assaytype spliced --species human 
+   #done
+   #done
 }
 
 main

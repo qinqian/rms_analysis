@@ -23,13 +23,12 @@ def compute_velocity(loom, mito_prefix='MT-', cutoff=[5000, 0.15], norm=False):
         adata = scv.read(loom[0], cache=True)
         adata2 = scv.read(loom[1], cache=True)
         adata = adata.concatenate(adata2, batch_key='library')
-        
     adata.var_names_make_unique()
     cells = adata.obs.index
     print(adata.layers)
     if not norm:
         sc.pp.filter_cells(adata, min_genes=1000)
-        sc.pp.filter_genes(adata, min_cells=5)
+        #sc.pp.filter_genes(adata, min_cells=5)
         mito_genes = adata.var_names.str.startswith(mito_prefix)
         # for each cell compute fraction of counts in mito genes vs. all genes
         # the `.A1` is only necessary as X is sparse (to transform to a dense array after summing)
@@ -117,7 +116,8 @@ def plot_velocity(test, name, pos):
 
     ax2=scv.pl.scatter(test[0], color=['root_cells'], size=100, show=False, ax=axes[0][1], legend_fontsize=16)
     ax3=scv.pl.scatter(test[0], color=['end_points'], size=100, show=False, ax=axes[0][2], legend_fontsize=16)
-    ax4=scv.pl.scatter(test[0], color=['velocity_pseudotime'],  size=100, show=False, ax=axes[1][0], legend_fontsize=16)
+    #print(test[0].obs.velocity_pseudotime)
+    #ax4=scv.pl.scatter(test[0], color=['velocity_pseudotime'],  size=100, show=False, ax=axes[1][0], legend_fontsize=16)
     ax5=sc.pl.paga(test[0], color=['clusters'], edge_width_scale=0.5, layout='fr', random_state=0, frameon=False,
                    fontsize=20, threshold=0.2, ax=axes[1][1], pos=pos)
 
@@ -151,8 +151,12 @@ if __name__ == '__main__':
         test.append(sc.read_h5ad(f'../results/{args.name}_velocity.h5ad'))
         test.append(np.load(f'../results/{args.name}_velocity.npy'))
     else:
-        test = compute_velocity(args.loom,
-                                mito_prefix='MT-', cutoff=[4000, 0.1], norm=False)
+        if args.species == 'fish':
+            test = compute_velocity(args.loom,
+                                    mito_prefix='mt-', cutoff=[4000, 0.1], norm=False)
+        else:
+            test = compute_velocity(args.loom,
+                                    mito_prefix='MT-', cutoff=[8000, 0.2], norm=False)
         test[0].write(f'../results/{args.name}_velocity.h5ad')
         np.save(f'../results/{args.name}_velocity.npy', test[1])
 
