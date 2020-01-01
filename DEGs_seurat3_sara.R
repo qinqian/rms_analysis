@@ -84,4 +84,3 @@ get_upregulated_genes_in_cells <- function(seurat_object, foreground_cells, cont
     tibble::rownames_to_column(var="genename") #%>% left_join(fish_to_human.dot,by=c("genename"="genename.dot"))
   return (marker_genes)
 }
-
