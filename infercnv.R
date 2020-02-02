@@ -43,3 +43,12 @@ hb <- new('HoneyBADGER', name='MAST111')
 hb$setGexpMats(as.matrix(seur$RNA@scale.data), ref, mart.obj, filter=FALSE, scale=FALSE, verbose=TRUE)
 
 
+
+library(HoneyBADGER)
+require(biomaRt) ## for gene coordinates
+#mart.obj <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = 'hsapiens_gene_ensembl', host = "jul2015.archive.ensembl.org") ## version used in manuscript
+mart.obj <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = 'hsapiens_gene_ensembl') ## current version
+saveRDS(mart.obj, file='mart_homo.rds')
+
+hb <- new('HoneyBADGER', name='MGH31')
+hb$setGexpMats(gexp, ref, mart.obj, filter=FALSE, scale=FALSE, verbose=TRUE)

@@ -76,7 +76,6 @@ gene.modules <- Sys.glob('lisa_script_modules/*symbols')
 gene.list <- lapply(gene.modules, scan, what='')
 names(gene.list) <- basename(gsub('.symbols', '', gene.modules))
 names(gene.list) <- c("EMT", "G1S", "G2M", "Histone", "Hypoxia", "INTERFERON", "MUSCLE", "TNFA")
-
 list2df <- function(x) {
     ylist <- list()
     for (y in names(x)) {
@@ -95,7 +94,6 @@ heatdata  <- as.matrix(seurat1$RNA@scale.data)[gene.list[, 2], order(seurat1$seu
 
 annrow <- gene.list[, 1, drop=F]
 rownames(annrow) <- gene.list[, 2]
-
 anncol <- data.frame(cluster=sortcells)
 
 metacolors <- c(rgb(166, 166, 166, maxColorValue = 255),

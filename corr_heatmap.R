@@ -34,7 +34,5 @@ for (s in Sys.glob("../results/seurat_sara/*.rds")) {
 }
 
 cell.nums = Reduce(function(x, y) {merge(x, y, by='Var1',all=T)}, cell.num)
-
 colnames(cell.nums) <- c("Cluster", names(cell.num))
-
 write.table(cell.nums, file='../results/seurat_sara/V4_New_sample_cluster_cell_number.xls', sep='\t', quote=F, row.names=F)

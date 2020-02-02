@@ -1,12 +1,13 @@
 library(cowplot)
 library(data.table)
-#library(tidyverse)
+library(tidyverse)
 library(dplyr)
 library(RColorBrewer)
 #library(doubletFinder)
 library(Matrix)
 library(foreach)
-library(Seurat) 
+library(Seurat)
+library(readr)
 
 get_args = function(x) {
     require(argparse)
@@ -29,11 +30,17 @@ type <- c("ERMS")
 samples <- args$seurat
 mixture.samples <- args$mixture
 
-print(samples)
-print(mixture.samples)
+## names <- 'mast139_muscle_plus'
+## type  <- 'ERMS'
+## samples <- 'MAST139_Muscle_plus/outs/filtered_feature_bc_matrix'
+## mixture.samples <-'MAST139_Muscle_plus_mixture/outs/filtered_feature_bc_matrix'
+
+## names <- 'mast139_muscle_minus'
+## samples <- 'MAST139_Muscle_minus/outs/filtered_feature_bc_matrix'
+## mixture.samples <-'MAST139_Muscle_minus_mixture/outs/filtered_feature_bc_matrix'
 
 mat <- Read10X(samples[1])
-seurat.obj <- CreateSeuratObject(counts = mat, project=names[1], min.cells = 3, min.features = 1) 
+seurat.obj <- CreateSeuratObject(counts = mat, project=names[1], min.cells = 3, min.features = 1)
 
 seurat.obj[["percent.mito"]] <- PercentageFeatureSet(object = seurat.obj, pattern = "^MT-")
 ## 2) percentage of ribosomal genes
@@ -63,19 +70,24 @@ seurat.obj[["percent.ribo"]] <- PercentageFeatureSet(object = seurat.obj, patter
 ## seurat.obj$fraction.mouse <- vec
 
 ## replace with matrix operation 
-mix.mat <- Read10X(mixture.samples[1])
-fraction.mouse = Matrix::colSums(mix.mat[grepl('mm10', rownames(mix.mat)), ])/Matrix::colSums(mix.mat)
-## 4) library size for filtering
 seurat.obj[["lib.size.10k"]] <- log10(seurat.obj[["nCount_RNA"]]/1e4+1)
 
-seurat.obj <- subset(x = seurat.obj, subset = nFeature_RNA > 1000 & nFeature_RNA < 8000 & percent.mito < 20)
-seurat.obj <- subset(seurat.obj, cells=names(which(fraction.mouse < 0.05)))
-seurat.obj[['fraction.mouse']] = fraction.mouse[colnames(seurat.obj)]
-
+if (!is.na(mixture.samples)) {
+    mix.mat <- Read10X(mixture.samples[1])
+    fraction.mouse = Matrix::colSums(mix.mat[grepl('mm10', rownames(mix.mat)), ])/Matrix::colSums(mix.mat)
+    ## 4) library size for filtering
+    seurat.obj[['fraction.mouse']] = fraction.mouse[match(colnames(seurat.obj), names(fraction.mouse))]
+}
+    
 pdf(paste0('../results/seurat_sara/', names[1], "_QC_plot", ".pdf"), width = 18, height = 8)
 par(mfrow=c(2,3))
+if (!is.na(mixture.samples)) {
 VlnPlot(object = seurat.obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mito", "percent.ribo","fraction.mouse"), 
         pt.size = 0.1, ncol = 6)
+} else {
+VlnPlot(object = seurat.obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mito", "percent.ribo"), 
+        pt.size = 0.1, ncol = 6)
+}
 hist(seurat.obj@meta.data$lib.size.10k, xlab="Library size (10^4)", main=paste0("mean ", round(mean(seurat.obj@meta.data$lib.size.10k),2)),
      breaks=20, col="grey80", ylab="Number of cells")
 abline(v=mean(seurat.obj@meta.data$lib.size.10k), col="red", lwd=2, lty=1)
@@ -84,10 +96,12 @@ hist(seurat.obj@meta.data$nFeature_RNA, xlab="Number of expressed genes", main=p
      breaks=20, col="grey80", ylab="Number of cells")
 abline(v=mean(seurat.obj@meta.data$nFeature_RNA), col="red", lwd=2, lty=1)
 abline(v=median(seurat.obj@meta.data$nFeature_RNA), col="red", lwd=2, lty=2)
-hist(seurat.obj@meta.data$fraction.mouse, xlab="% Mouse reads", main=paste0("mean ", round(mean(seurat.obj@meta.data$fraction.mouse),2)),
-     breaks=20, col="grey80", ylab="Number of cells")
-abline(v=mean(seurat.obj@meta.data$fraction.mouse), col="red", lwd=2, lty=1)
-abline(v=median(seurat.obj@meta.data$fraction.mouse), col="red", lwd=2, lty=2)
+if (!is.na(mixture.samples)) {
+    hist(seurat.obj@meta.data$fraction.mouse, xlab="% Mouse reads", main=paste0("mean ", round(mean(seurat.obj@meta.data$fraction.mouse),2)),
+         breaks=20, col="grey80", ylab="Number of cells")
+    abline(v=mean(seurat.obj@meta.data$fraction.mouse), col="red", lwd=2, lty=1)
+    abline(v=median(seurat.obj@meta.data$fraction.mouse), col="red", lwd=2, lty=2)
+}
 hist(seurat.obj@meta.data$percent.mito, xlab="% Mitochondrial reads", main=paste0("mean ", round(mean(seurat.obj@meta.data$percent.mito),2)),
      breaks=20, col="grey80", ylab="Number of cells")
 abline(v=mean(seurat.obj@meta.data$percent.mito), col="red", lwd=2, lty=1)
@@ -98,16 +112,27 @@ abline(v=mean(seurat.obj$percent.ribo), col="red", lwd=2, lty=1)
 abline(v=median(seurat.obj$percent.ribo), col="red", lwd=2, lty=2)
 dev.off()
 
+if (!is.na(mixture.samples)) {
+    seurat.obj <- subset(x = seurat.obj, subset = nFeature_RNA > 1000 & nFeature_RNA < 8000 & percent.mito < 20)
+    seurat.obj <- subset(seurat.obj, cells=names(which(fraction.mouse < 0.05)))
+} else {
+    seurat.obj <- subset(x = seurat.obj, subset = nFeature_RNA > 1000 & nFeature_RNA < 8000 & percent.mito < 20)
+}
 
 seurat.obj <- NormalizeData(object = seurat.obj, normalization.method = "LogNormalize", scale.factor = 10000)
 
 seurat.obj <- FindVariableFeatures(object = seurat.obj, selection.method = "vst",
                                    mean.function = ExpMean, dispersion.function = LogVMR,
                                    x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5, nfeatures = 2000)
-
+if (!is.na(mixture.samples)) {
 seurat.obj <- ScaleData(object = seurat.obj, genes.use = rownames(seurat.obj), 
                         vars.to.regress = c("nUMI", "nGene", "percent.mito", "percent.ribo", "fraction.mouse"), 
                         model.use = "linear", use.umi = FALSE) 
+} else {
+seurat.obj <- ScaleData(object = seurat.obj, genes.use = rownames(seurat.obj), 
+                        vars.to.regress = c("nUMI", "nGene", "percent.mito", "percent.ribo"), 
+                        model.use = "linear", use.umi = FALSE) 
+}
 
 highvar.genes <- head(VariableFeatures(object = seurat.obj), 1000)
 
@@ -136,7 +161,9 @@ FeaturePlot(seurat.obj, features = "nCount_RNA", reduction = "tsne", cols = c("l
 FeaturePlot(seurat.obj, features = "nFeature_RNA", reduction = "tsne", cols = c("lightgrey", "red"))
 FeaturePlot(seurat.obj, features = "percent.mito", reduction = "tsne", cols = c("lightgrey", "red"))
 FeaturePlot(seurat.obj, features = "percent.ribo", reduction = "tsne", cols = c("lightgrey", "red"))
+if (!is.na(mixture.samples)) {
 FeaturePlot(seurat.obj, features = "fraction.mouse", reduction = "tsne", cols = c("lightgrey", "red"))
+}
 dev.off()
 
 
@@ -152,5 +179,3 @@ pdf(paste0('../results/seurat_sara/', names[1], "_human_mouse_genes_", ".pdf"), 
 FeaturePlot(object = seurat.obj, reduction = "tsne", cols = c("lightgrey", "red"), order = TRUE, 
             features = c("CTSS", "CD68", "HEXB", "MAFB", "LGALS3", "AIF1", "SRGN", "TYROBP", "SLC15A3", "BCL2A1", "GNGT2"))
 dev.off()
-
-
