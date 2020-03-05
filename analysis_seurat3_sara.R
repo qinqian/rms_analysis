@@ -187,7 +187,7 @@ for (i in 1:length(samples)){
   
   seurat.obj <- subset(x = seurat.obj, subset = nFeature_RNA > 1000 & nFeature_RNA < 8000 & percent.mito < 20 & fraction.mouse< 0.05 ) 
   
-   seurat.obj <- NormalizeData(object = seurat.obj, normalization.method = "LogNormalize", scale.factor = 10000)
+  seurat.obj <- NormalizeData(object = seurat.obj, normalization.method = "LogNormalize", scale.factor = 10000)
   
   seurat.obj <- FindVariableFeatures(object = seurat.obj, selection.method = "vst",
                                      mean.function = ExpMean, dispersion.function = LogVMR,

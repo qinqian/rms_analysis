@@ -3,7 +3,6 @@ library(data.table)
 library(tidyverse)
 library(dplyr)
 library(RColorBrewer)
-#library(doubletFinder)
 library(Matrix)
 library(foreach)
 library(Seurat)
@@ -15,6 +14,7 @@ get_args = function(x) {
     parser$add_argument('--mixtureobj', dest='mixture', metavar='N', type="character", nargs='+')
     parser$add_argument('--seuratobj', dest='seurat', metavar='N', type="character", nargs='+')
     parser$add_argument('--label', dest='label', default='')
+    parser$add_argument('--doublet', dest='doublet', default='')
     args = parser$parse_args()
     args
 }
@@ -29,6 +29,7 @@ names <- args$label
 type <- c("ERMS")
 samples <- args$seurat
 mixture.samples <- args$mixture
+doublet <- args$doublet
 
 ## names <- 'mast139_muscle_plus'
 ## type  <- 'ERMS'
@@ -39,9 +40,23 @@ mixture.samples <- args$mixture
 ## samples <- 'MAST139_Muscle_minus/outs/filtered_feature_bc_matrix'
 ## mixture.samples <-'MAST139_Muscle_minus_mixture/outs/filtered_feature_bc_matrix'
 
-mat <- Read10X(samples[1])
-seurat.obj <- CreateSeuratObject(counts = mat, project=names[1], min.cells = 3, min.features = 1)
+## names <- '20082'
+## samples <- '20082_hg19_premrna/outs/filtered_feature_bc_matrix'
+## mixture.samples <-'20082_hg19_premrna/outs/filtered_feature_bc_matrix'
+## doublet <- '../results/20082_hg19_premrna_doublet_doublet.csv'
 
+mat <- Read10X(samples[1])
+
+doublet = read.csv(doublet, stringsAsFactors=F)
+cells = gsub('-1', '', doublet[,2])
+non_doublet <- rep(T, nrow(doublet))
+non_doublet[doublet$prediction=='True'] = F
+
+cells = cells[non_doublet]
+
+mat = mat[, colnames(mat)%in%cells]
+
+seurat.obj <- CreateSeuratObject(counts = mat, project=names[1], min.cells = 3, min.features = 1)
 seurat.obj[["percent.mito"]] <- PercentageFeatureSet(object = seurat.obj, pattern = "^MT-")
 ## 2) percentage of ribosomal genes
 seurat.obj[["percent.ribo"]] <- PercentageFeatureSet(object = seurat.obj, pattern = "^RP[SL][[:digit:]]")
@@ -126,7 +141,7 @@ seurat.obj <- FindVariableFeatures(object = seurat.obj, selection.method = "vst"
                                    x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5, nfeatures = 2000)
 if (!is.na(mixture.samples)) {
 seurat.obj <- ScaleData(object = seurat.obj, genes.use = rownames(seurat.obj), 
-                        vars.to.regress = c("nUMI", "nGene", "percent.mito", "percent.ribo", "fraction.mouse"), 
+                        vars.to.regress = c("nUMI", "nGene", "percent.mito", "percent.ribo", "fraction.mouse"),
                         model.use = "linear", use.umi = FALSE) 
 } else {
 seurat.obj <- ScaleData(object = seurat.obj, genes.use = rownames(seurat.obj), 
