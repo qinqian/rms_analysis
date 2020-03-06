@@ -21,17 +21,25 @@ if __name__ == '__main__':
 
     counts_matrix = scipy.io.mmread(args.mat).T.tocsc()
     if args.gzip:
-       genes = np.array(pd.read_table(args.feature, delimiter='\t', compression='gzip').iloc[:, 1])
+       # cells = np.array(pd.read_table(args.feature, delimiter='\t', compression='gzip').iloc[:, 1])
+       cells = np.array(pd.read_table(args.feature, delimiter='\t', header=None, compression='gzip').iloc[:, 0])
     else:
-       genes = np.array(pd.read_table(args.feature, delimiter='\t').iloc[:, 1])
+       # cells = np.array(pd.read_table(args.feature, delimiter='\t').iloc[:, 1])
+       cells = np.array(pd.read_table(args.feature, delimiter='\t', header=None).iloc[:, 0])
+
+    print(counts_matrix.shape)
     scrub = scr.Scrublet(counts_matrix, expected_doublet_rate=0.06)
     #scrub.call_doublets(threshold=0.25)
     doublet_scores, predicted_doublets = scrub.scrub_doublets(min_counts=2, 
                                                               min_cells=3, 
                                                               min_gene_variability_pctl=85, 
                                                               n_prin_comps=30)
-    
-    print(doublet_scores)
+    print(cells.shape)
+    print(doublet_scores.shape)
+    df = pd.DataFrame(dict(cells=cells,
+                           score=doublet_scores,
+                           prediction=predicted_doublets))
+    df.to_csv('../results/%s_doublet.csv' % args.name)
     scrub.plot_histogram()
     plt.savefig('../results/%s_doublet.pdf' % args.name)
 

@@ -17,7 +17,6 @@ get_args = function(x) {
     parser = ArgumentParser(description='seurat normalization')
     parser$add_argument('--seuratobj1', dest='seurat1', metavar='N', type="character", nargs='+')
     parser$add_argument('--label', dest='label', default='')
-
     parser$add_argument('--species', dest='species', type='character', default='human')
     args = parser$parse_args()
     args
@@ -33,14 +32,22 @@ if (length(args$seurat1) == 0 || args$label == '') {
 ## args$seurat1 <- "/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST111.rds"
 ## args$label <- "MAST111"
 
-#args$seurat1 <- "../results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds"
-#args$label <- "20191031_MSK72117tencell"
+## args$seurat1 <- "../results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds"
+## args$label <- "20191031_MSK72117tencell"
+
+## args$seurat1 <- '../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'
+## args$label <- '20082'
+
+## args$seurat1 <- '../results/seurat_sara/29806_hg19_premrna_seurat-object.rds'
+## args$label <- '29806'
 
 source("DEGs_seurat3_sara.R")
+
 seurat1 <- readRDS(args$seurat1) ## sara's version
 print(dim(seurat1))
 
 Idents(seurat1) <- seurat1@meta.data$seurat_clusters <- seurat1@meta.data$RNA_snn_res.0.8
+
 allcluster <- names((seurat1@meta.data$seurat_clusters) %>% table())
 
 clusterde <- list()
@@ -48,9 +55,12 @@ for (i in allcluster) {
     print(i)
     print(allcluster[-(as.integer(i)+1)])
     de.up <- get_upregulated_genes_in_clusters(seurat1, i, allcluster[-(as.integer(i)+1)])
-    de.up$cluster <- i
+    if (nrow(de.up) > 0) {
+        de.up$cluster <- i
+    }
     clusterde[[i]] <- de.up
 }
+
 seurat1.de <- do.call('rbind', clusterde) ## still too many genes
 ## again, filter by adjusted p value and fraction of cells expressing the genes
 seurat1.de <- subset(seurat1.de, p.adjusted <= 0.01 & (fg_fraction >= 0.1 | bg_fraction >= 0.1))
@@ -75,7 +85,9 @@ dev.off()
 gene.modules <- Sys.glob('lisa_script_modules/*symbols')
 gene.list <- lapply(gene.modules, scan, what='')
 names(gene.list) <- basename(gsub('.symbols', '', gene.modules))
+
 names(gene.list) <- c("EMT", "G1S", "G2M", "Histone", "Hypoxia", "INTERFERON", "MUSCLE", "TNFA")
+
 list2df <- function(x) {
     ylist <- list()
     for (y in names(x)) {

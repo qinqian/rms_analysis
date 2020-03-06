@@ -43,7 +43,11 @@ if (args$species == 'fish') {
         vel.cells = gsub('.+:', '', gsub('x', '', rownames(vel@meta.data)))
     }
 } else {
-    vel.cells = gsub('.*_hg19:', '', gsub('x', '', rownames(vel@meta.data)))
+    print(head((vel@meta.data)))
+    #vel.cells = gsub('.*_hg19:', '', gsub('x', '', rownames(vel@meta.data)))
+    # for primary tumor
+    vel.cells = gsub('.*_hg19_premrna:', '', gsub('x', '', rownames(vel@meta.data)))
+    print(head(vel.cells))
 }
 
 seu.cells = rownames(seu@meta.data)
@@ -51,9 +55,14 @@ seu.cells = rownames(seu@meta.data)
 print(head(vel.cells))
 print(head(seu.cells))
 
+print('--------test------------')
 intersect.cells1 = intersect(vel.cells, seu.cells)
 vel.cells = colnames(vel)[vel.cells%in%intersect.cells1]
-vel.cells_order = order(gsub('.*_hg19:', '', gsub('x', '', vel.cells)))
+vel.cells_order = order(gsub('.*_hg19_premrna:', '', gsub('x', '', vel.cells)))
+print('--------test------------')
+print(vel.cells)
+print(vel.cells_order)
+print('--------test------------')
 
 seu = subset(seu, cells=sort(intersect.cells1))
 vel = subset(vel, cells=vel.cells[vel.cells_order])
@@ -67,7 +76,8 @@ if (args$species == 'fish') {
         ncol(seu) == sum(gsub('.+:', '', gsub('x', '', rownames(vel@meta.data))) == rownames(seu@meta.data))
     }
 } else {
-    print(ncol(seu) == sum(gsub('.*_hg19:', '', gsub('x', '', rownames(vel@meta.data))) == rownames(seu@meta.data)))
+    #print(ncol(seu) == sum(gsub('.*_hg19:', '', gsub('x', '', rownames(vel@meta.data))) == rownames(seu@meta.data)))
+    print(ncol(seu) == sum(gsub('.*_hg19_premrna:', '', gsub('x', '', rownames(vel@meta.data))) == rownames(seu@meta.data)))
 }
 
 ## ignore cluster 
@@ -79,12 +89,12 @@ if (args$species == 'fish') {
 }
 
 ## forcely use sara's cluster labels to colorize the plot
-seu.markers = FindAllMarkers(seu, only.pos=T, min.pct=0.1,
-                             test.use='MAST',
-                             ## assay='SCT', slot='data', #slot='scale.data',
-                             random.seed=100, logfc.threshold = 0.1)
-human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
-seu.markers    = cbind(seu.markers, human_ortholog[match(seu.markers$gene, human_ortholog$Gene), ])
+#seu.markers = FindAllMarkers(seu, only.pos=T, min.pct=0.1,
+#                             test.use='MAST',
+#                             ## assay='SCT', slot='data', #slot='scale.data',
+#                             random.seed=100, logfc.threshold = 0.1)
+##human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
+#seu.markers    = cbind(seu.markers, human_ortholog[match(seu.markers$gene, human_ortholog$Gene), ])
 
 vel <- recluster.withtree(vel, name=args$label)
 vel <- FindClusters(object=vel, resolution=args$res)
@@ -97,7 +107,7 @@ system('mkdir -p ../results/seurat_intersect_velocity')
 
 ## it's fine for seurat object
 saveRDS(seu, file=paste0('../results/seurat_intersect_velocity/', args$label, '_seu.rds'))
-write.table(seu.markers, file=paste0('../results/seurat_intersect_velocity/', args$label, paste0('_seu_markers_tumoronly_res', args$res, '.xls')), sep='\t', quote=F)
+#write.table(seu.markers, file=paste0('../results/seurat_intersect_velocity/', args$label, paste0('_seu_markers_tumoronly_res', args$res, '.xls')), sep='\t', quote=F)
 
 ## this is for Seurat Wrapper of velocity
 saveRDS(vel, file=paste0('../results/seurat_intersect_velocity/', args$label, '_vel.rds'))

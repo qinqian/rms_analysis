@@ -1,5 +1,4 @@
 ## library(nichenetr)
-
 library(Seurat)
 library(cellassign)
 library(tidyverse)
@@ -22,13 +21,15 @@ if (length(args$seurat) == 0 || args$label == '') {
     q()
 }
 
-## args$seuratobj <- '../results/seurat_sara/20696_seurat-object.rds'
+## args$seurat <- '../results/seurat_sara/20696_seurat-object.rds'
 ## args$label <- '20696'
 
-## args$seuratobj <- '../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'
+## args$seurat <- '../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'
 ## args$label <- '20082'
 
-print(args)
+## args$seurat <- '../results/seurat_sara/29806_hg19_premrna_seurat-object.rds'
+## args$label <- '29806'
+## print(args)
 
 primary1_obj <- readRDS(args$seurat)
 
@@ -55,7 +56,7 @@ print(FeaturePlot(primary1_obj, features=c("MYOD1", "MYF5", "MYOG", "DES", "MYC"
                                            "CDK4", "CDK6", "WEE1")))
 dev.off()
 
-ligand_target_matrix <- readRDS('ligand_target_matrix.rds')
+ligand_target_matrix <- readRDS('../results/nichenet/ligand_target_matrix.rds')
 pemt_geneset = readr::read_tsv(url("https://zenodo.org/record/3260758/files/pemt_signature.txt"), col_names = "gene") %>% pull(gene) %>% .[. %in% rownames(ligand_target_matrix)] # only consider genes also present in the NicheNet model - this excludes genes from the gene list for which the official HGNC symbol was not used by Puram et al.
 
 gene.modules <- Sys.glob('lisa_script_modules/*symbols')
@@ -92,25 +93,32 @@ for (i in names(cancersea)) {
 cancermarker = do.call(rbind, cancermarker)
 saveRDS(cancermarker, file="../data/cancersea/cancersea.rds")
 
-allmarkers <- read.table(Sys.glob(glue('../results/seurat_sara/{args$label}*SCT*')))
+print(glue('../results/seurat_sara/{args$label}*SCT*xls'))
+print(Sys.glob(glue('../results/seurat_sara/{args$label}*SCT*xls')))
+allmarkers <- read.table(Sys.glob(glue('../results/seurat_sara/{args$label}*SCT*xls')))
 
 cluster_cancer = list()
 cluster_internal_cancer = list()
 cluster_normal = list()
+
 for (cluster in unique(allmarkers$cluster)) {
     y1 <- enricher(as.character(allmarkers[allmarkers$cluster==cluster, ]$genename),
                    TERM2GENE=cell_markers, minGSSize=1)
-    if (nrow(y1) > 0) {
+    print('aaaa')
+    ## if (nrow(y1) > 0) {
+    if (!is.null(y1)  && nrow(y1)!=0) {
         cluster_normal[[as.character(cluster)]] <- cbind(cluster, head(y1[order(y1$p.adjust), ], 5))
     }
     y2 <- enricher(as.character(allmarkers[allmarkers$cluster == cluster, ]$genename),
-                  TERM2GENE = cancermarker, minGSSize = 1)
-    if (nrow(y2) > 0) {
+                   TERM2GENE = cancermarker, minGSSize = 1)
+    ## if (nrow(y2) > 0) {
+    if (!is.null(y2) && nrow(y2)!=0) {
         cluster_cancer[[as.character(cluster)]] <- cbind(cluster, head(y2[order(y2$p.adjust), ], 5))
     }
     y3 <- enricher(as.character(allmarkers[allmarkers$cluster == cluster, ]$genename),
                   TERM2GENE = gene.list, minGSSize = 1)
-    if (nrow(y3) > 0) {
+    ## if (nrow(y3) > 0) {
+    if (!is.null(y3)  && nrow(y3)!=0) {
         cluster_internal_cancer[[as.character(cluster)]] <- cbind(cluster, head(y3[order(y3$p.adjust), ], 5))
     }
 }
@@ -152,6 +160,7 @@ s = s[s > 0]
 cas <- cellassign(exprs_obj = sce_marker,
                   marker_gene_info = marker_mat[intersect(rownames(marker_mat), rownames(primary1.sce)),],
                   s = s)
+
 colnames(sce_marker)
 
 primary1.objann = subset(primary1_obj, cells=colnames(sce_marker))

@@ -53,7 +53,6 @@ non_doublet <- rep(T, nrow(doublet))
 non_doublet[doublet$prediction=='True'] = F
 
 cells = cells[non_doublet]
-
 mat = mat[, colnames(mat)%in%cells]
 
 seurat.obj <- CreateSeuratObject(counts = mat, project=names[1], min.cells = 3, min.features = 1)
@@ -182,7 +181,7 @@ FeaturePlot(seurat.obj, features = "fraction.mouse", reduction = "tsne", cols = 
 dev.off()
 
 
-for (j in c(0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2)){
+for (j in c(0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2)) {
     pdf(paste0('../results/seurat_sara/', names[1], "_UMAP_plot_20PCs_res", j, ".pdf"), width = 12, height = 6)
     p1 = DimPlot(seurat.obj, reduction = "umap", group.by = paste0("RNA_snn_res.", j))
     p2 = DimPlot(seurat.obj, reduction = "tsne", group.by = paste0("RNA_snn_res.", j))
@@ -194,3 +193,4 @@ pdf(paste0('../results/seurat_sara/', names[1], "_human_mouse_genes_", ".pdf"), 
 FeaturePlot(object = seurat.obj, reduction = "tsne", cols = c("lightgrey", "red"), order = TRUE, 
             features = c("CTSS", "CD68", "HEXB", "MAFB", "LGALS3", "AIF1", "SRGN", "TYROBP", "SLC15A3", "BCL2A1", "GNGT2"))
 dev.off()
+

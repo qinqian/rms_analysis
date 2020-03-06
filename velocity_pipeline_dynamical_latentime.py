@@ -73,7 +73,7 @@ def load_seurat_umap(args, test):
         red = reductions.loc[test[1], :]
     else:   # fish used the spliced umap
         reductions = test[0].obsm['umap_cell_embeddings'] 
-        test[0].obsm['X_umap']  = test[0].obsm['umap_cell_embeddings']  ## already filtered again by scvelo, no need [test[1],:]
+        test[0].obsm['X_umap'] = test[0].obsm['umap_cell_embeddings']  ## already filtered again by scvelo, no need [test[1],:]
         red = pd.DataFrame(reductions)
 
     test[0].obs['clusters'] = clusters.values
@@ -82,7 +82,7 @@ def load_seurat_umap(args, test):
     #test[0].obs['louvain']  = clusters
 
     if args.species == 'human':
-        metalabels = np.array(["GROUND", "Hypoxia", "EMT", "G1S", "UNASSIGNED", "G2M", 
+        metalabels = np.array(["GROUND", "Hypoxia", "EMT", "G1S", "UNASSIGNED", "G2M",
                                "MUSCLE", "INTERFERON", "PROLIF", "Histones"])
         metacolors = np.array(["#8D510B", "#F19545", "#672366", "#3465FC", "#F2F2F2",
                                "#3465FC", "#E93F33", "#418107", "#3465FC", "#F769A1"])

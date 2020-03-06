@@ -46,7 +46,8 @@ def compute_velocity(loom, mito_prefix='MT-', cutoff=[5000, 0.15], norm=False):
     scv.pp.moments(adata, n_pcs=20, n_neighbors=30)
   #  sc.pp.regress_out(adata, ['n_counts', 'percent_mito'])
   #  sc.pp.scale(adata, max_value=10)
-    sc.tl.umap(adata)
+    if 'X_umap' not in adata.obsm.keys():
+        sc.tl.umap(adata)
     sc.tl.louvain(adata, resolution=0.8)
     scv.tl.velocity(adata, mode='stochastic')
     scv.tl.velocity_graph(adata)
