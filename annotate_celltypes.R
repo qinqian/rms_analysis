@@ -24,8 +24,11 @@ if (length(args$seurat) == 0 || args$label == '') {
 ## args$seurat <- '../results/seurat_sara/20696_seurat-object.rds'
 ## args$label <- '20696'
 
-## args$seurat <- '../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'
-## args$label <- '20082'
+## args$seurat <- '../results/seurat_sara/21202_hg19_premrna_seurat-object.rds'
+## args$label <- '21202'
+
+args$seurat <- '../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'
+args$label <- '20082'
 
 ## args$seurat <- '../results/seurat_sara/29806_hg19_premrna_seurat-object.rds'
 ## args$label <- '29806'
@@ -36,11 +39,21 @@ primary1_obj <- readRDS(args$seurat)
 erms.topsign = c("ITM2A", "FABP5", "EMILIN1", "RRBP1", "CCND1", "EMP3", "EIF4EBP1", "TSTA3", "ADA", "HMGA2")
 arms.topsign = c("HSPB2", "MYL4", "PIPOX", "TNNT2", "MYOG", "ENO3", "NRN1", "GYPC", "TSPAN3", "TFF3")
 
+primary1_obj.copy <- readRDS(args$seurat)
+pdf(glue('{args$label}_with_clusterlabel.pdf'), width=6, height=4)
+primary1_obj.copy$seurat_clusters = primary1_obj.copy$RNA_snn_res.0.8
+DimPlot(primary1_obj.copy, reduction='umap', group.by='seurat_clusters', label = TRUE, legend = "none")
+dev.off()
+
 pdf(glue('{args$label}_erms_markers.pdf'), width=30, height=10)
 p1 <- DotPlot(primary1_obj, features=erms.topsign, cols = c("lightgrey", "red"), group.by='RNA_snn_res.0.8')
 p2 <- FeaturePlot(primary1_obj, features=erms.topsign)
 ## p3 <- DoHeatmap(primary1_obj, features=erms.topsign, slots='raw.data')
 CombinePlots(plots=list(p1, p2))
+dev.off()
+
+pdf(glue('{args$label}_cellassign.pdf'), width=6, height=4)
+DimPlot(primary1.objann, reduction='umap', group.by='seurat_clusters')
 dev.off()
 
 pdf(glue('{args$label}_arms_markers.pdf'), width=30, height=10)
