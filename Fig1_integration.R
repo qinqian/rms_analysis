@@ -9,7 +9,16 @@ MAST85 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-o
 MSK82489 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MSK82489.rds')
 MAST35 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST35.rds')
 
-all.obj = Reduce('merge', list(MAST111, MAST139, MAST39, RH74, MAST95, MAST85, MSK82489, MAST35))
+## new added samples
+MSK72117_10cells = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds')
+MAST118 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/MAST118_seurat-object.rds')
+MSK74711 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK74711_seurat-object.rds')
+
+MSK72117_10cells@meta.data$orig.ident = gsub('20191031_', '', MSK72117_10cells@meta.data$orig.ident)
+MSK74711@meta.data$orig.ident = gsub('20191031_', '', MSK74711@meta.data$orig.ident)
+
+all.obj = Reduce('merge', list(MAST111, MAST139, MAST39, RH74, MAST95, MAST85, MSK82489, MAST35,
+                               MSK72117_10cells, MAST118, MSK74711))
 
 all.obj <- NormalizeData(object = all.obj, normalization.method = "LogNormalize", scale.factor = 10000)
 all.obj <- FindVariableFeatures(object = all.obj, selection.method = "vst",
@@ -23,11 +32,11 @@ all.obj <- RunPCA(object = all.obj, features = highvar.genes,
                   npcs = 50, ndims.print = 1:5, nfeatures.print = 1:5,
                   reduction.name = "pca", reduction.key = "PC_", seed.use = 123)
 
-all.obj <- JackStraw(object = all.obj, num.replicate = 100)
-
-all.obj <- ScoreJackStraw(object = all.obj, dims = 1:20)
+## all.obj <- JackStraw(object = all.obj, num.replicate = 100)
+## all.obj <- ScoreJackStraw(object = all.obj, dims = 1:20)
 
 all.obj <- FindNeighbors(object = all.obj, k.param = 20, dims = 1:20, reduction = "pca")
+
 ## all.obj <- FindClusters(object = all.obj, reduction.type = "pca", dims.use = 1:20, 
 ##                         algorithm = 1, 
 ##                         resolution = c(0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2),
@@ -78,6 +87,7 @@ fish.obj <- FindNeighbors(object = fish.obj, k.param = 20, dims = 1:20, reductio
 ##                         resolution = c(0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2),
 ##                         random.seed = 123)
 fish.obj <- RunUMAP(fish.obj, reduction.use = "pca", dims = 1:20, reduction.name = "umap")
+
 saveRDS(fish.obj, file='../data/seurat_obj/all_three_zebrafish.rds')
 
 fish.obj@meta.data$orig.ident = gsub('_unfilter', '', fish.obj@meta.data$orig.ident)
@@ -113,16 +123,29 @@ primary.obj <- RunPCA(object = primary.obj, features = highvar.genes,
 ## primary.obj <- JackStraw(object = primary.obj, num.replicate = 100)
 ## primary.obj <- ScoreJackStraw(object = primary.obj, dims = 1:20)
 
-primary.obj <- FindNeighbors(object = primary.obj, k.param = 20, dims = 1:15, reduction = "pca")
+primary.obj <- FindNeighbors(object = primary.obj, k.param = 20, dims = 1:20, reduction = "pca")
+
 ## primary.obj <- FindClusters(object = primary.obj, reduction.type = "pca", dims.use = 1:20, 
 ##                         algorithm = 1, 
 ##                         resolution = c(0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2),
 ##                         random.seed = 123)
 
-primary.obj <- RunUMAP(primary.obj, reduction.use = "pca", dims = 1:15, reduction.name = "umap")
+## primary.obj <- RunUMAP(primary.obj, reduction.use = "pca", dims = 1:15, reduction.name = "umap", seed.use=123)
+primary.obj <- RunUMAP(primary.obj, reduction.use = "pca", dims = 1:15, reduction.name = "umap", seed.use=42)
 
 saveRDS(primary.obj, file='../data/seurat_obj/all_primary_patient.RDS')
 
-pdf('../figures/primary_patient_integration.pdf', width=10, height=8)
-DimPlot(primary.obj, reduction='umap', group.by = 'orig.ident')
-dev.off()
+meta.copy = primary.obj@meta.data
+
+library(glue)
+for (i in unique(primary.obj@meta.data$orig.ident)) {
+    print(i)
+    meta.data = meta.copy
+    meta.data[primary.obj@meta.data$orig.ident!=i, 'RNA_snn_res.0.8'] = -1
+    primary.obj@meta.data = meta.data
+    pdf(glue('../figures/primary_patient_integration_label_{i}.pdf'), width=16, height=8)
+    p1=DimPlot(primary.obj, reduction='umap', group.by = 'orig.ident')
+    p2=DimPlot(primary.obj, reduction='umap', group.by = 'RNA_snn_res.0.8', label=T, legend=F)
+    print(CombinePlots(plots=list(p1, p2)))
+    dev.off()
+}

@@ -4,27 +4,24 @@ library(tidyverse)
 library(vroom)
 library(clusterProfiler)
 
-## ligand_target_matrix <- readRDS(url("https://zenodo.org/record/3260758/files/ligand_target_matrix.rds"))
-## saveRDS(ligand_target_matrix, "ligand_target_matrix.rds")
-## weighted_networks = readRDS(url("https://zenodo.org/record/3260758/files/weighted_networks.rds"))
-## saveRDS(weighted_networks, "weighted_networks.rds")
+ligand_target_matrix <- readRDS(url("https://zenodo.org/record/3260758/files/ligand_target_matrix.rds"))
+saveRDS(ligand_target_matrix, "../data/ligand_target_matrix.rds")
+weighted_networks = readRDS(url("https://zenodo.org/record/3260758/files/weighted_networks.rds"))
+saveRDS(weighted_networks, "../data/weighted_networks.rds")
 
 # ligand-receptor interaction
-weighted_networks    <- readRDS("weighted_networks.rds")
-# ligand-target interaction
-ligand_target_matrix <- readRDS("ligand_target_matrix.rds")
+## weighted_networks    <- readRDS("weighted_networks.rds")
+## # ligand-target interaction
+## ligand_target_matrix <- readRDS("ligand_target_matrix.rds")
 
-weighted_networks_lr <- weighted_networks$lr_sig %>% inner_join(lr_network %>%
+weighted_networks_lr <- weighted_networks$lr_sig %>% inner_join(lr_network %>% 
                                                                 distinct(from, to), by = c("from", "to"))
 
 primary1_obj <- readRDS('../results/seurat_sara/20696_seurat-object.rds')
-
-## receiver <- '9' # EMT
-## sender <- c('3', '1', '11')   # inflammation(/Macrophage), Cell cycle, (Cytoxic/) T cell
 Idents(primary1_obj) <- primary1_obj$RNA_snn_res.0.8
+
 library(dplyr)
 library(tidyverse)
-
 
 for (receiver in c('9', '2', '1')) {
     for (sender in c('3', '11', '15')) {
@@ -32,27 +29,18 @@ for (receiver in c('9', '2', '1')) {
         background_expressed_genes <- expressed_genes_receiver %>% .[. %in% rownames(ligand_target_matrix)]
         list_expressed_genes_sender = sender %>% unique() %>% lapply(get_expressed_genes, primary1_obj, 0.10) # lapply to get the expressed genes of every sender cell type separately here
         expressed_genes_sender <- list_expressed_genes_sender %>% unlist() %>% unique()
-
         seurat_obj_receiver = subset(primary1_obj, idents=receiver)
-
         allmarkers <- read.table(Sys.glob('../results/seurat_sara/20696*SCT*'))
         geneset_oi = allmarkers[allmarkers$cluster==receiver, 'genename']
-
         geneset_oi = as.vector(geneset_oi %>% .[. %in% rownames(ligand_target_matrix)])
-
         ligands = lr_network %>% pull(from) %>% unique()
         receptors = lr_network %>% pull(to) %>% unique()
-
         expressed_ligands = intersect(ligands, expressed_genes_sender)
         expressed_receptors = intersect(receptors, expressed_genes_receiver)
-
         potential_ligands = lr_network %>% filter(from %in% expressed_ligands & to %in% expressed_receptors) %>% pull(from) %>% unique()
-
         ligand_activities = predict_ligand_activities(geneset = geneset_oi, background_expressed_genes = background_expressed_genes, ligand_target_matrix = ligand_target_matrix, potential_ligands = potential_ligands)
         ligand_activities = ligand_activities %>% arrange(-pearson) %>% mutate(rank = rank(desc(pearson)))
-
         best_upstream_ligands = ligand_activities %>% top_n(20, pearson) %>% arrange(-pearson) %>% pull(test_ligand) %>% unique()
-
         DotPlot(primary1_obj, features = best_upstream_ligands %>% rev(), cols = "RdYlBu") + RotatedAxis()
         ggsave(paste0('sender', paste(sender, collapse='_'), 'receiver', receiver, '.pdf'))
 

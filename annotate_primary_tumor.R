@@ -177,7 +177,6 @@ dev.off()
 
 
 pemt_geneset = unique(readr::read_tsv(url("https://zenodo.org/record/3260758/files/pemt_signature.txt"), col_names = "gene")$gene)
-
 gene.modules <- Sys.glob('lisa_script_modules/*symbols')
 gene.list <- lapply(gene.modules, scan, what='')
 names(gene.list) <- basename(gsub('.symbols', '', gene.modules))

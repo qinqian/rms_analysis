@@ -15,7 +15,7 @@ process_standard <- function(obj, output, assaytype='RNA', regress_mt=T, norm=T)
     pdf(output, width=18, height=6)
     print(p)
     dev.off()
-
+    
     obj <- FindNeighbors(object=obj) ## use dims later...
     for (i in seq(0, 1, 0.05)) {
         obj <- FindClusters(object=obj, resolution=i) ## should add algorithm=2 later for better louvain
