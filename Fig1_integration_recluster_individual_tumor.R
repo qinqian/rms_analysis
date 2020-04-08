@@ -1,11 +1,11 @@
 library(Seurat)
 
-primary.obj <- Reduce("merge", list(
-                                readRDS('../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'),
-                                readRDS('../results/seurat_sara/21202_hg19_premrna_seurat-object.rds'),
-                                readRDS('../results/seurat_sara/20696_seurat-object.rds'),
-                                readRDS('../results/seurat_sara/29806_hg19_premrna_seurat-object.rds'))
-                      )
+## primary.obj <- Reduce("merge", list(
+##                                 readRDS('../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'),
+##                                 readRDS('../results/seurat_sara/21202_hg19_premrna_seurat-object.rds'),
+##                                 readRDS('../results/seurat_sara/20696_seurat-object.rds'),
+##                                 readRDS('../results/seurat_sara/29806_hg19_premrna_seurat-object.rds'))
+##                       )
 
 
 p20082 <- readRDS('../results/seurat_sara/20082_hg19_premrna_seurat-object.rds')
@@ -43,10 +43,8 @@ rerun_cluster <- function(obj) {
 }
 
 library(tidyverse)
-
 source("DEGs_seurat3_sara.R")
 library(foreach)
-
 FindDE <- function(x) {
     allcluster <- names((x@meta.data$seurat_clusters) %>% table())
     clusterde <- list()
@@ -65,21 +63,20 @@ FindDE <- function(x) {
 
 for (tumor in list(p20082.tumor, p21202.tumor, p20696.tumor, p29806.tumor)) {
     tumor <- rerun_cluster(tumor)
-    ## TODO:
     saveRDS(tumor, paste0('../figures/', tumor@meta.data$orig.ident[1], '_tumoronly_res0.8_umap.rds'))
-    ## pdf(paste0('../figures/', tumor@meta.data$orig.ident[1], '_tumoronly_res0.8_umap.pdf'))
-    ## print(DimPlot(tumor, reduction='umap', label=T, group.by='seurat_clusters'))
-    ## dev.off()
-    ## tumor.de <- FindDE(tumor)
-    ## tumor.de <- subset(tumor.de, p.adjusted <= 0.01 & (fg_fraction >= 0.1 | bg_fraction >= 0.1))
-    ## write.table(tumor.de, file=paste0('../results/seurat_sara/', tumor@meta.data$orig.ident[1], '_tumoronly_res0.8.xls'), sep='\t', quote=F, col.names=NA)
+    pdf(paste0('../figures/', tumor@meta.data$orig.ident[1], '_tumoronly_res0.8_umap.pdf'))
+    print(DimPlot(tumor, reduction='umap', label=T, group.by='seurat_clusters'))
+    dev.off()
+    tumor.de <- FindDE(tumor)
+    tumor.de <- subset(tumor.de, p.adjusted <= 0.01 & (fg_fraction >= 0.1 | bg_fraction >= 0.1))
+    write.table(tumor.de, file=paste0('../results/seurat_sara/', tumor@meta.data$orig.ident[1], '_tumoronly_res0.8.xls'), sep='\t', quote=F, col.names=NA)
 }
 
 library(ComplexHeatmap)
-gene.modules <- Sys.glob('lisa_script_modules/*symbols')
+
+gene.modules <- Sys.glob('../final_annotations/gene_modules/*txt')
 gene.list <- lapply(gene.modules, scan, what='')
-names(gene.list) <- basename(gsub('.symbols', '', gene.modules))
-names(gene.list) <- c("EMT", "G1S", "G2M", "Histone", "Hypoxia", "INTERFERON", "MUSCLE", "TNFA")
+names(gene.list) <- basename(gsub('.txt', '', gene.modules))
 
 list2df <- function(x) {
     ylist <- list()
@@ -195,66 +192,66 @@ for (label in c('20082', '21202', '20696', '29806')) {
 cell_markers = readRDS(file='../data/cancersea/cellmarkers.rds')
 cancermarker = readRDS("../data/cancersea/cancersea.rds")
 
-pemt_geneset = unique(readr::read_tsv(url("https://zenodo.org/record/3260758/files/pemt_signature.txt"), col_names = "gene")$gene)
-gene.modules <- Sys.glob('lisa_script_modules/*symbols')
-gene.list <- lapply(gene.modules, scan, what='')
-names(gene.list) <- basename(gsub('.symbols', '', gene.modules))
-names(gene.list) <- c("EMT", "G1S", "G2M", "Histone", "Hypoxia", "INTERFERON", "MUSCLE", "TNFA")
-gene.list$CAF = c("FAP", "PDPN", "THY1", "MMP2", "MMP11", "PDGFRA", "PDGFRL", "TGFB3", "CTGF")
-gene.list$MyoFib = c("ACTA2", "MCAM", "MYLK", "MYL9", "IL6", "PDGFA")
-gene.list$pEMT <- pemt_geneset
-list2df <- function(x) {
-    ylist <- list()
-    for (y in names(x)) {
-        ylist[[y]] = data.frame(module=y, gene=x[[y]])
-    }
-    do.call('rbind', ylist)
-}
-gene.list <- list2df(gene.list)
+## pemt_geneset = unique(readr::read_tsv(url("https://zenodo.org/record/3260758/files/pemt_signature.txt"), col_names = "gene")$gene)
+## gene.modules <- Sys.glob('lisa_script_modules/*symbols')
+## gene.list <- lapply(gene.modules, scan, what='')
+## names(gene.list) <- basename(gsub('.symbols', '', gene.modules))
+## names(gene.list) <- c("EMT", "G1S", "G2M", "Histone", "Hypoxia", "INTERFERON", "MUSCLE", "TNFA")
+## gene.list$CAF = c("FAP", "PDPN", "THY1", "MMP2", "MMP11", "PDGFRA", "PDGFRL", "TGFB3", "CTGF")
+## gene.list$MyoFib = c("ACTA2", "MCAM", "MYLK", "MYL9", "IL6", "PDGFA")
+## gene.list$pEMT <- pemt_geneset
+## list2df <- function(x) {
+##     ylist <- list()
+##     for (y in names(x)) {
+##         ylist[[y]] = data.frame(module=y, gene=x[[y]])
+##     }
+##     do.call('rbind', ylist)
+## }
+## gene.list <- list2df(gene.list)
 
-library(glue)
-library(tidyverse)
-library(vroom)
-library(clusterProfiler)
+## library(glue)
+## library(tidyverse)
+## library(vroom)
+## library(clusterProfiler)
 
-for (label in c('20082', '21202', '20696', '29806')) {
-    df = read.table(Sys.glob(glue('../results/seurat_sara/{label}*_tumoronly_res0.8.xls')))
-    cluster_cancer = list()
-    cluster_internal_cancer = list()
-    cluster_normal = list()
-    for (cluster in unique(df$cluster)) {
-        y1 <- enricher(as.character(df[df$cluster==cluster, ]$genename),
-                       TERM2GENE=cell_markers, minGSSize=1)
-        print('aaaa')
-        ## if (nrow(y1) > 0) {
-        if (!is.null(y1)  && nrow(y1)!=0) {
-            cluster_normal[[as.character(cluster)]] <- cbind(cluster, head(y1[order(y1$p.adjust), ], 5))
-        }
-        y2 <- enricher(as.character(df[df$cluster == cluster, ]$genename),
-                       TERM2GENE = cancermarker, minGSSize = 1)
-        ## if (nrow(y2) > 0) {
-        if (!is.null(y2) && nrow(y2)!=0) {
-            cluster_cancer[[as.character(cluster)]] <- cbind(cluster, head(y2[order(y2$p.adjust), ], 5))
-        }
-        y3 <- enricher(as.character(df[df$cluster == cluster, ]$genename),
-                       TERM2GENE = gene.list, minGSSize = 1)
-        ## if (nrow(y3) > 0) {
-        if (!is.null(y3)  && nrow(y3)!=0) {
-            cluster_internal_cancer[[as.character(cluster)]] <- cbind(cluster, head(y3[order(y3$p.adjust), ], 5))
-        }
-    }
-    cluster_cancer <- do.call(rbind, cluster_cancer)
-    cluster_internal_cancer <- do.call(rbind, cluster_internal_cancer)
-    cluster_normal <- do.call(rbind, cluster_normal)
-    normal.clusters <- subset(cluster_normal[,c(1, 7)], p.adjust<=0.05)
-    cancer.clusters <- rbind(cbind(subset(cluster_cancer[,c(1,2,7)], p.adjust<=0.05), Resource='CancerSEA'),
-                             cbind(subset(cluster_internal_cancer[,c(1,2,7)], p.adjust<=0.05), Resource='RMS'))
-    cancer.clusters <- cancer.clusters[order(cancer.clusters$cluster), ]
-    rownames(cancer.clusters) <- paste0(cancer.clusters$cluster, '.', cancer.clusters$ID, '.', cancer.clusters$Resource)
-    cancer.clusters <- cancer.clusters[, c(1, 3)]
-    rownames(normal.clusters) = paste0(rownames(normal.clusters), '.CellMarker')
-    allann <- rbind(cancer.clusters, normal.clusters)
-    allann <- allann[order(allann$cluster), ]
-    allann$ID <- rownames(allann)
-    readr::write_csv(allann, path=glue('{label}_tumor_only_annotation.csv'))
-}
+## for (label in c('20082', '21202', '20696', '29806')) {
+##     df = read.table(Sys.glob(glue('../results/seurat_sara/{label}*_tumoronly_res0.8.xls')))
+##     cluster_cancer = list()
+##     cluster_internal_cancer = list()
+##     cluster_normal = list()
+##     for (cluster in unique(df$cluster)) {
+##         y1 <- enricher(as.character(df[df$cluster==cluster, ]$genename),
+##                        TERM2GENE=cell_markers, minGSSize=1)
+##         print('aaaa')
+##         ## if (nrow(y1) > 0) {
+##         if (!is.null(y1)  && nrow(y1)!=0) {
+##             cluster_normal[[as.character(cluster)]] <- cbind(cluster, head(y1[order(y1$p.adjust), ], 5))
+##         }
+##         y2 <- enricher(as.character(df[df$cluster == cluster, ]$genename),
+##                        TERM2GENE = cancermarker, minGSSize = 1)
+##         ## if (nrow(y2) > 0) {
+##         if (!is.null(y2) && nrow(y2)!=0) {
+##             cluster_cancer[[as.character(cluster)]] <- cbind(cluster, head(y2[order(y2$p.adjust), ], 5))
+##         }
+##         y3 <- enricher(as.character(df[df$cluster == cluster, ]$genename),
+##                        TERM2GENE = gene.list, minGSSize = 1)
+##         ## if (nrow(y3) > 0) {
+##         if (!is.null(y3)  && nrow(y3)!=0) {
+##             cluster_internal_cancer[[as.character(cluster)]] <- cbind(cluster, head(y3[order(y3$p.adjust), ], 5))
+##         }
+##     }
+##     cluster_cancer <- do.call(rbind, cluster_cancer)
+##     cluster_internal_cancer <- do.call(rbind, cluster_internal_cancer)
+##     cluster_normal <- do.call(rbind, cluster_normal)
+##     normal.clusters <- subset(cluster_normal[,c(1, 7)], p.adjust<=0.05)
+##     cancer.clusters <- rbind(cbind(subset(cluster_cancer[,c(1,2,7)], p.adjust<=0.05), Resource='CancerSEA'),
+##                              cbind(subset(cluster_internal_cancer[,c(1,2,7)], p.adjust<=0.05), Resource='RMS'))
+##     cancer.clusters <- cancer.clusters[order(cancer.clusters$cluster), ]
+##     rownames(cancer.clusters) <- paste0(cancer.clusters$cluster, '.', cancer.clusters$ID, '.', cancer.clusters$Resource)
+##     cancer.clusters <- cancer.clusters[, c(1, 3)]
+##     rownames(normal.clusters) = paste0(rownames(normal.clusters), '.CellMarker')
+##     allann <- rbind(cancer.clusters, normal.clusters)
+##     allann <- allann[order(allann$cluster), ]
+##     allann$ID <- rownames(allann)
+##     readr::write_csv(allann, path=glue('{label}_tumor_only_annotation.csv'))
+## }

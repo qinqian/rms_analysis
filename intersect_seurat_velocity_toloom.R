@@ -89,12 +89,16 @@ if (args$species == 'fish') {
 }
 
 ## forcely use sara's cluster labels to colorize the plot
-#seu.markers = FindAllMarkers(seu, only.pos=T, min.pct=0.1,
-#                             test.use='MAST',
-#                             ## assay='SCT', slot='data', #slot='scale.data',
-#                             random.seed=100, logfc.threshold = 0.1)
-##human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
-#seu.markers    = cbind(seu.markers, human_ortholog[match(seu.markers$gene, human_ortholog$Gene), ])
+## only uncomment for zebrafish
+if (args$species == 'fish') {
+seu.markers = FindAllMarkers(seu, only.pos=T, min.pct=0.1,
+                             test.use='MAST',
+                             ## assay='SCT', slot='data', #slot='scale.data',
+                             random.seed=100, logfc.threshold = 0.1)
+human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
+seu.markers    = cbind(seu.markers, human_ortholog[match(seu.markers$gene, human_ortholog$Gene), ])
+seurat1.de$enrichment = seurat1.de$pct.1 - seurat1.de$pct.2
+}
 
 vel <- recluster.withtree(vel, name=args$label)
 vel <- FindClusters(object=vel, resolution=args$res)
@@ -107,7 +111,7 @@ system('mkdir -p ../results/seurat_intersect_velocity')
 
 ## it's fine for seurat object
 saveRDS(seu, file=paste0('../results/seurat_intersect_velocity/', args$label, '_seu.rds'))
-#write.table(seu.markers, file=paste0('../results/seurat_intersect_velocity/', args$label, paste0('_seu_markers_tumoronly_res', args$res, '.xls')), sep='\t', quote=F)
+write.table(seu.markers, file=paste0('../results/seurat_intersect_velocity/', args$label, paste0('_seu_markers_tumoronly_res', args$res, '.xls')), sep='\t', quote=F)
 
 ## this is for Seurat Wrapper of velocity
 saveRDS(vel, file=paste0('../results/seurat_intersect_velocity/', args$label, '_vel.rds'))

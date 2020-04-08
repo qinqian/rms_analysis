@@ -221,11 +221,9 @@ main() {
   #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor21 --finalres 0.1 --tumor 0 1 
   #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor22 --finalres 0.1 --tumor 0 1 4 
 
-  Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix/' --label Tumor24_unfilter --finalres 0.05 --tumor -1 &
-
-  Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor21_unfilter --finalres 0.1 --tumor -1 &
-
-  Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor22_unfilter --finalres 0.1 --tumor -1 &
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix/' --label Tumor24_unfilter --finalres 0.05 --tumor -1 &
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor21_unfilter --finalres 0.1 --tumor -1 &
+  #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor22_unfilter --finalres 0.1 --tumor -1 &
 
   #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/velocyto/Tumor24_zebrafish_with_orf_color_v2.loom' --label Tumor24_velocity --finalres 0.05 --tumor -1 --assaytype spliced 
   #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2/velocyto/Tumor21_zebrafish_with_orf_color_v2.loom' '/PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/velocyto/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2.loom' --label Tumor21_velocity --finalres 0.1 --tumor -1 --assaytype spliced 
@@ -235,6 +233,16 @@ main() {
   #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor24_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor24_velocity_seurat_obj_tumors.rds' --label Tumor24 #2>&1 >Tumor24_intersect.log 
   #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor21_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor21_velocity_seurat_obj_tumors.rds' --label Tumor21 #2>&1 >Tumor21_intersect.log 
   #Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat/Tumor22_seurat_obj_tumors.rds --velobj '../results/seurat/Tumor22_velocity_seurat_obj_tumors.rds' --label Tumor22 # 2>&1 >Tumor22_intersect.log &
+
+  #for i in ../results/seurat_intersect_velocity/Tumor*seu.rds ; do
+  #   echo $i
+  #   label=$(basename $i)
+  #   # conda activate alvin_resvel
+  #   #Rscript generate_v6_degenes.R --seuratobj1 $i --label ${label/.rds}
+  #   #conda activate sc-tutorial
+  #   Rscript annotate_celltypes.R --seuratobj $i --label ${label/.rds/} --species fish &
+  #   #break
+  #done
 
   #n=0
   #for index in ../results/seurat_intersect_velocity/*seu_markers*xls; do 
@@ -451,10 +459,17 @@ main() {
    #                               --mixtureobj "/data/langenau/human_rms_pdxs/20191203_MAST118_FINAL/MAST118_mixture/outs/filtered_feature_bc_matrix" --label MAST118
 
    #for i in ../results/seurat_sara/*rds; do
-   #    label=$(basename $i)
-   #    Rscript generate_v4_degenes.R --seuratobj1 $i --label ${label/.rds} &
-   #    #break
-   #done
+   #for i in ../results/seurat_sara/MAST139_1cells*rds; do
+   #for i in ../data/seurat_obj/*MAST85-1cell*rds; do
+   #for i in ../data/seurat_obj/2*rds; do
+   for i in ../results/seurat_sara/*MSK74711*rds ../results/seurat_sara/*MAST118*rds ../results/seurat_sara/*MSK72117*rds; do
+       label=$(basename $i)
+       #conda activate alvin_resvel
+       #Rscript generate_v4_degenes.R --seuratobj1 $i --label ${label/.rds} &
+       #conda activate sc-tutorial
+       Rscript annotate_celltypes.R --seuratobj $i --label ${label/.rds} &
+       #break
+   done
 
    #for i in MAST139_1cells; do
    #for i in MAST139_1cells; do
@@ -606,12 +621,12 @@ main() {
   #      Rscript intersect_seurat_velocity_toloom.R --seuratobj ../results/seurat_sara/${i}_seurat-object.rds --velobj ../results/seurat/${i}_seurat_obj_tumors.rds --label ${i} --species human
   # done
 
-  #for i in 20082 29806 21202;do
-  #for i in 29806; do
-  #    #Rscript generate_v4_degenes.R --seuratobj1 ../results/seurat_sara/${i}_hg19_premrna_seurat-object.rds \
-  #    #                              --label $i
-  #    Rscript annotate_celltypes.R --seuratobj ../results/seurat_sara/${i}_hg19_premrna_seurat-object.rds --label ${i}
+  #for i in 20082_hg19 20696_hg19 21202_hg19 29806_hg19;do
+  #    ## de analysis on tumor only Fig1_integration_recluster_individual_tumor.R
+  #    #echo Rscript annotate_celltypes.R --seuratobj ../figures/${i}_*umap.rds --label ${i}
+  #    Rscript annotate_celltypes.R --seuratobj ../figures/${i}_*umap.rds --label ${i} &
   #done
+  #Rscript annotate_celltypes.R --seuratobj 20082_recluster2_tumor_only.rds --label 20082_recluster2
 }
 
 main
