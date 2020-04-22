@@ -3,7 +3,6 @@ objs = Sys.glob("/data/langenau/human_rms_pdxs/seurat_objects/*")
 
 colortab = read.table('color_table.xls', sep='\t', header=T, check.names=F)
 fishcolortab = read.delim('fish_color_table.txt', sep='\t', header=T, check.names=F)
-
 human_ortholog = read.table('~/langenau/01_rms_projects/01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
 
 human = readRDS(objs[2])

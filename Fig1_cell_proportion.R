@@ -29,8 +29,10 @@ results = list()
 for (i in seq_along(labels)) {
     states = unlist(as.vector(annotation[labels[i], ]))
     states = states[states!='']
-    print(states)
+    ## print(states)
+    pdxs.objs[[i]]$seurat_clusters = pdxs.objs[[i]]$RNA_snn_res.0.8
     levels(pdxs.objs[[i]]$RNA_snn_res.0.8) = states
+    print(levels(pdxs.objs[[i]]$RNA_snn_res.0.8))
     results[[labels[i]]] = table(pdxs.objs[[i]]$RNA_snn_res.0.8)
 }
 
@@ -45,29 +47,32 @@ for (i in seq_along(labels)) {
 
 write.table(cell.prop, file='PDX_all_cells.xls', quote=F, sep='\t', col.names=NA)
 
-metacolors <- c(rgb(166, 166, 166, maxColorValue = 255),
-                rgb(241, 149, 69, maxColorValue = 255),
-                rgb(103, 35,  102, maxColorValue = 255),
+metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
+                rgb(236, 133, 40, maxColorValue = 255),
+                rgb(59, 22, 115, maxColorValue = 255),
                 rgb(52, 101, 252, maxColorValue = 255),
                 rgb(242, 242, 242, maxColorValue = 255),
                 rgb(52, 101, 252, maxColorValue = 255),
-                rgb(233, 63,  51, maxColorValue = 255),
-                rgb(65, 129,  7, maxColorValue = 255),
-                rgb(52, 101, 252, maxColorValue = 255),
-                rgb(253, 247, 49, maxColorValue = 255),
-                'purple')
+                rgb(225, 39, 39, maxColorValue = 255),
+                rgb(72, 159,  75, maxColorValue = 255),
+                rgb(20, 64, 216, maxColorValue = 255),
+                rgb(226, 75, 143, maxColorValue = 255),
+                rgb(158, 60, 200, maxColorValue = 255))
+
 metalabels <- c("Ground", "Hypoxia", "EMT",
                 "G1S", "UNASSIGNED",
                 "G2M",  "Muscle", "INTERFERON", "Prolif",
-                "Histone", "TNFA")
+                "Histone", "Apoptosis")
 
 names(metacolors) <- metalabels
 
 cols = metacolors[levels(pdxs.objs[[1]]$RNA_snn_res.0.8)]
 
-pdf("Fig1_MAST111.pdf", width=4.6, height=3.5)
-DimPlot(pdxs.objs[[1]], group.by='RNA_snn_res.0.8', label=F,
-        cols=cols, legend=F)
+pdf("Fig1_MAST111.pdf", width=9.2, height=3.5)
+p1=DimPlot(pdxs.objs[[1]], group.by='seurat_clusters', label=F)
+p2=DimPlot(pdxs.objs[[1]], group.by='RNA_snn_res.0.8', label=F,
+           cols=cols, legend=F)
+print(CombinePlots(plots=list(p1, p2), ncol=2))
 dev.off()
 
 gene.modules <- Sys.glob('../final_annotations/gene_modules/*txt')
@@ -87,14 +92,15 @@ gene.list <- gene.list[gene.list[,1]%in%levels(pdxs.objs[[1]]$RNA_snn_res.0.8), 
 
 library(ComplexHeatmap)
 tumor = pdxs.objs[[1]]
+
 df = read.table(paste0('../results/seurat_sara/20190624_seurat-object_MAST111_SCT_res0.8.xls'))
 tumor$RNA_snn_res.0.8 = reorder(tumor$RNA_snn_res.0.8,
-                                new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'TNFA', 'Ground'))
+                                new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'Apoptosis', 'Ground'))
+
 gene.list[,1] = reorder(droplevels(gene.list[,1]),
-                        new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'TNFA'))
+                        new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'Apoptosis'))
 
 
-sortcells <- order(tumor$RNA_snn_res.0.8)
 source('DEGs_seurat3_sara.R')
 
 cpm = as.data.frame(apply(as.matrix(tumor$RNA@counts), 2, correct))
@@ -102,14 +108,37 @@ cpm = as.data.frame(apply(as.matrix(tumor$RNA@counts), 2, correct))
 sortgenes = order(gene.list[, 1])
 gene.list = gene.list[sortgenes,]
 
+sortcells <- order(tumor$RNA_snn_res.0.8, tumor$seurat_clusters)
+## sortcells = order(tumor$seurat_clusters, tumor$RNA_snn_res.0.8)
 heatdata  <- cpm[as.character(gene.list[,2]), sortcells]
+clusters <- tumor$seurat_clusters[sortcells]
+
+test=(cbind(as.vector(tumor$RNA_snn_res.0.8), as.vector(tumor$seurat_clusters)))
+test=table(test[,1],test[,2])
+
+cluster_cols=rep('gray', 9)
+names(cluster_cols)= 0:8
+for (i in seq_along(rownames(test))) {
+    if (sum(test[i, ]>0)>1) {
+        if (i%%2)
+            cluster_cols[test[i, ]>0] = c('gray', 'white')
+        else
+            cluster_cols[test[i, ]>0] = c('white', 'gray')
+    } else {
+        if (i%%2)
+            cluster_cols[test[i, ]>0] = c('white')
+        else
+            cluster_cols[test[i, ]>0] = c('gray')
+    }
+}
+
 annrow <- gene.list[, 1, drop=F]
 ## rownames(annrow) <- paste0(gene.list[, 1], '.', gene.list[, 2])
 rownames(annrow) <- gene.list[, 2]
 anncol <- data.frame(cluster=tumor$RNA_snn_res.0.8[sortcells])
 ## ha = structure(brewer.pal(length(unique(anncol[, 1])), "Set3"),
 ##                names=levels(anncol[, 1]))
-colsrow = cols[as.vector(annrow[,1])]
+## colsrow = cols[as.vector(annrow[,1])]
 ## mat2 = t(apply(log2(heatdata+1), 1, function(x) {
 mat2 = t(apply(heatdata, 1, function(x) {
     q10 <- quantile(x, 0.1)
@@ -124,24 +153,30 @@ mat2 = mat2[selection, ]
 annrow = annrow[selection, ,drop=F]
 ## anncol = anncol[selection, ,drop=F]
 
-pdf('Fig1_MAST111heatmap.pdf', width=10)
-## mat2= t(scale(t(heatdata)))
-## mat2 = t(scale(t(log2(heatdata+1))))
-topha = HeatmapAnnotation(clusters=as.vector(anncol[,1]), 
-                          col=list(clusters=cols[anncol[,1]]), show_legend=T,
-                          gp = gpar(col = NA))
+## pdf('Fig1_MAST111heatmap.pdf', width=10, height=8)
+tiff('Fig1_MAST111heatmap.tif', units="in", width=12, height=6, res=320)
+topha = HeatmapAnnotation(states=as.vector(anncol[,1]),
+                          clusters=clusters,
+                          col=list(states=cols,
+                                   clusters=cluster_cols),
+                          show_legend=T,
+                          gp = gpar(col = NA),
+                          border = c(states=F, clusters=T))
 leftha = rowAnnotation(modules=annrow[, 1],
-                       col=list(modules=colsrow),
+                       col=list(modules=cols),
                        gp = gpar(col = NA))
-## Heatmap(as.vector(annrow[,1]), col=colsrow, width = unit(0.5, "cm"), name='clusters')+
-Heatmap(mat2, name = "Scaled Expression", 
-        show_column_dend = FALSE, cluster_rows=F, cluster_columns=F,
-        show_row_names=F,
-        show_column_names = FALSE, width = unit(15, "cm"), 
-        column_title = qq("MAST111 relative expression for @{ncol(heatdata)} cells"),
-        col = colorRamp2(c(-1.5, -0.6, -0.5, 0, 1.5),
-                         c("blue", rgb(97, 233, 234, maxColorValue = 255),
-                           "white", "white", "red")),
-        top_annotation=topha,
-        left_annotation=leftha)
+ha = Heatmap(mat2, name = "Scaled Expression",
+             use_raster = TRUE, raster_quality = 2,
+             show_column_dend = FALSE, cluster_rows=F, cluster_columns=F,
+             show_row_names=F,
+             show_column_names = FALSE, width = unit(10, "cm"),
+             column_title = qq("MAST111 relative expression for @{ncol(heatdata)} cells"),
+             col = colorRamp2(c(-1, -0.6, -0.4, 0, 1),
+                              c("blue", rgb(97, 233, 234, maxColorValue = 255),
+                                "white",
+                                ## rgb(97, 233, 234, maxColorValue = 255),
+                                "white", "red")),
+             top_annotation=topha,
+             left_annotation=leftha)
+draw(ha)
 dev.off()
