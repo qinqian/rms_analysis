@@ -462,14 +462,14 @@ main() {
    #for i in ../results/seurat_sara/MAST139_1cells*rds; do
    #for i in ../data/seurat_obj/*MAST85-1cell*rds; do
    #for i in ../data/seurat_obj/2*rds; do
-   for i in ../results/seurat_sara/*MSK74711*rds ../results/seurat_sara/*MAST118*rds ../results/seurat_sara/*MSK72117*rds; do
-       label=$(basename $i)
-       #conda activate alvin_resvel
-       #Rscript generate_v4_degenes.R --seuratobj1 $i --label ${label/.rds} &
-       #conda activate sc-tutorial
-       Rscript annotate_celltypes.R --seuratobj $i --label ${label/.rds} &
-       #break
-   done
+   # for i in ../results/seurat_sara/*MSK74711*rds ../results/seurat_sara/*MAST118*rds ../results/seurat_sara/*MSK72117*rds; do
+   #     label=$(basename $i)
+   #     #conda activate alvin_resvel
+   #     #Rscript generate_v4_degenes.R --seuratobj1 $i --label ${label/.rds} &
+   #     #conda activate sc-tutorial
+   #     Rscript annotate_celltypes.R --seuratobj $i --label ${label/.rds} &
+   #     #break
+   # done
 
    #for i in MAST139_1cells; do
    #for i in MAST139_1cells; do
@@ -610,8 +610,7 @@ main() {
    #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ../../rms_codes/cellranger.sh /PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/src/29806 29806 29806_hg19_premrna /data/langenau/alvin_singlecell/01_rms_projects/01_fish/src/hg19-3.0.0.premrna/"
    #bsub -J humanvelR -n 8 -q big-multi -M 64000 "bash ../../rms_codes/cellranger.sh /PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/src/21202 21202 21202_hg19_premrna /data/langenau/alvin_singlecell/01_rms_projects/01_fish/src/hg19-3.0.0.premrna/"
 
-  # for i in 20082_hg19_premrna; do
-  # #     #for i in 20082_hg19_premrna 29806_hg19_premrna 21202_hg19_premrna; do
+  # ##for i in 20082_hg19_premrna 29806_hg19_premrna 21202_hg19_premrna; do
   # #     echo $i
   # #     #python identify_doublet.py -mat ${i}/outs/filtered_feature_bc_matrix/matrix.mtx.gz -feature ${i}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz -name ${i}_doublet -gzip 
   # #     #velocyto run10x /PHShome/qq06/alvin_singlecell/01_rms_projects/01_fish/src/${i} /data/langenau/alvin_singlecell/01_rms_projects/02_human/data/genome/refdata-cellranger-hg19-3.0.0/genes/genes.gtf &
@@ -627,6 +626,69 @@ main() {
   #    Rscript annotate_celltypes.R --seuratobj ../figures/${i}_*umap.rds --label ${i} &
   #done
   #Rscript annotate_celltypes.R --seuratobj 20082_recluster2_tumor_only.rds --label 20082_recluster2
+
+   #the rest of velocity analysis
+   # Rscript seurat_pipeline.R --seuratobj /data/langenau/human_rms_pdxs/20191203_MAST118_FINAL/MAST118_hg19/velocyto/* --label MAST118 --finalres 0.8 --tumor -1 --assaytype spliced --species human 
+   #for i in 20191031_MSK72117tencell_cellranger 20191031_MSK74711_cellranger MAST139_1cells; do
+   #    echo $i
+   #    Rscript seurat_pipeline.R --seuratobj /data/langenau/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/${i}/velocyto/* --label $i --finalres 0.8 --tumor -1 --assaytype spliced --species human 
+   #done
+
+   #seurat_sara_left=('../results/seurat_sara/MAST118_seurat-object.rds' '../results/seurat_sara/20191031_MSK74711_seurat-object.rds' '../results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds' '../results/seurat_sara/MAST139_1cells_seurat-object.rds')
+   #labels=(MAST118 20191031_MSK74711_cellranger 20191031_MSK72117tencell_cellranger MAST139_1cells)
+
+   seurat_sara_left=('../figures/20696_hg19_tumoronly_res0.8_umap.rds' '20082_recluster2_tumor_only.rds' '../figures/29806_hg19_premrna_tumoronly_res0.8_umap.rds' '../figures/21202_hg19_premrna_tumoronly_res0.8_umap.rds')
+   labels=(20696 20082_hg19_premrna 29806_hg19_premrna 21202_hg19_premrna)
+   for i in `seq 0 $((${#seurat_sara_left[@]}-1))`; do
+       #echo Rscript intersect_seurat_velocity_toloom.R --seuratobj ${seurat_sara_left[$i]} --velobj ../results/seurat/${labels[$i]}_seurat_obj_tumors.rds --label ${labels[$i]}_vel --species human 
+       #Rscript intersect_seurat_velocity_toloom.R --seuratobj ${seurat_sara_left[$i]} --velobj ../results/seurat/${labels[$i]}_seurat_obj_tumors.rds --label ${labels[$i]}_vel --species human &
+       echo python velocity_pipeline_dynamical_latentime.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_seu.rds -n ${labels[$i]}_dynamical_model
+       python velocity_pipeline_dynamical_latentime.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_vel_seu.rds -n ${labels[$i]}_dynamical_model
+       #echo python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_vel_seu.rds -n ${labels[$i]}_dynamical_model
+       #python velocity_pipeline.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_vel_seu.rds -n ${labels[$i]}_dynamical_model
+       #echo python velocity_pipeline_steady.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_vel_seu.rds -n ${labels[$i]}
+       #python velocity_pipeline_steady.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_vel_seu.rds -n ${labels[$i]}_steady
+   done
+
+   #seurat_sara_left=(../data/seurat_obj/20190624_seurat-object_MAST111.rds ../data/seurat_obj/20190624_seurat-object_MAST139.rds)
+   #labels=(20190624_seurat-object_MAST111 20190624_seurat-object_MAST139)
+   #seurat_sara_left=(' ../data/seurat_obj/20190624_seurat-object_MAST139.rds')
+   #labels=(20190624_seurat-object_MAST139)
+   #seurat_sara_left=(../data/seurat_obj/20190624_seurat-object_MAST35.rds ../data/seurat_obj/20190624_seurat-object_MAST39.rds ../data/seurat_obj/20190624_seurat-object_MAST85.rds ../data/seurat_obj/20190624_seurat-object_MSK82489.rds ../data/seurat_obj/20190624_seurat-object_MAST95.rds ../data/seurat_obj/20190624_seurat-object_RH74.rds)
+   #labels=(20190624_seurat-object_MAST35 20190624_seurat-object_MAST39 20190624_seurat-object_MAST85 20190624_seurat-object_MSK82489 20190624_seurat-object_MAST95 20190624_seurat-object_RH74)
+   #for i in `seq 0 $((${#seurat_sara_left[@]}-1))`; do
+   #    echo python velocity_pipeline_steady.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_seu.rds -n ${labels[$i]}
+   #    python velocity_pipeline_steady.py -l ../results/seurat_intersect_velocity/${labels[$i]}_vel.loom -s ../results/seurat_intersect_velocity/${labels[$i]}_seu.rds -n ${labels[$i]}_steady &
+   #done
+
+
+  #for i in /PHShome/qq06/langenau/01_rms_projects/01_fish/src/20082_hg19_premrna/ \
+  #         /PHShome/qq06/langenau/01_rms_projects/01_fish/src/20696_hg19/ \
+  #         /PHShome/qq06/langenau/01_rms_projects/01_fish/src/21202_hg19_premrna/ \
+  #         /PHShome/qq06/langenau/01_rms_projects/01_fish/src/29806_hg19_premrna/; do
+  #    label=$(basename $i)
+  #    python identify_doublet.py -mat ${i}/outs/filtered_feature_bc_matrix/matrix.mtx.gz -feature ${i}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz -name ${label}_doublet -gzip 
+  #done
+
+   #for i in /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/ \
+   #         /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2 /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/ \
+   #         /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2 /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/; do
+   #    label=$(basename $i)
+   #    python identify_doublet.py -mat ${i}/outs/filtered_feature_bc_matrix/matrix.mtx.gz -feature ${i}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz -name ${label}_doublet -gzip 
+   #done
+
+   #### do not re-process zebrafish dataset with Sara version 4 pipeline without SCTtransform
+   #### for i in /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/ \
+   ####          "/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2 /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/" \
+   ####         "/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2 /PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/"; do
+   ####     echo $i
+   ####     label=$(basename $i)
+   ####     #Rscript seurat_sara_pipeline.R --seuratobj ${i}/outs/filtered_feature_bc_matrix \
+   ####     #                               --mixtureobj NA --label ${i} --doublet ../results/doublets/${i}_doublet_doublet.csv
+   ####     #Rscript seurat_sara_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor24_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix/' --label Tumor24_unfilter_v4 --finalres 0.05 --tumor -1
+   ####     #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor21_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor21_unfilter_v4 --finalres 0.1 --tumor -1 &
+   ####     #Rscript seurat_pipeline.R --seuratobj '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' '/PHShome/qq06/langenau/01_rms_projects/01_fish/data/cellranger_counts/Tumor22_2ndlibrary_zebrafish_with_orf_color_v2/outs/filtered_feature_bc_matrix' --label Tumor22_unfilter_v4 --finalres 0.1 --tumor -1 &
+   #### done
 }
 
 main

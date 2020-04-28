@@ -2,10 +2,14 @@ library(ggplot2)
 #human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
 
 process_standard <- function(obj, output, assaytype='RNA', regress_mt=T, norm=T) {
-    if (!norm) {
+    #if (!norm) {
+    if (F) { 
+        ## input should always be normalized
+        ## SCTransform is incompatible with JackStraw after Seurat 3.1.5
         obj <- SCTransform(obj, assay=assaytype, vars.to.regress = "percent.mt")
     }
     obj <- RunPCA(object=obj)
+    # this cannot be runned on the SCT... after 3.1.5 Seurat
     obj <- JackStraw(obj, num.replicate = 100)
     obj <- ScoreJackStraw(obj, dims=1:20)
 

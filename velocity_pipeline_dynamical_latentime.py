@@ -59,7 +59,8 @@ def load_seurat_umap(args, test):
     with localconverter(ro.default_converter + pandas2ri.converter):
         meta = ro.conversion.rpy2py(test_seu.slots['meta.data'])
     if args.species == 'human': 
-        clusters = meta.loc[test[1], 'RNA_snn_res.0.8']
+        #clusters = meta.loc[test[1], 'RNA_snn_res.0.8']
+        clusters = meta.loc[test[1], 'seurat_clusters'] ## for primary clusters
         #clusters = pandas2ri.ri2py(r['data.frame'](test_seu.slots['meta.data']).rx2('RNA_snn_res.0.8'))[test[1]]
     else:
         clusters = meta.loc[test[1], 'seurat_clusters']

@@ -43,13 +43,13 @@ def compute_velocity(loom, mito_prefix='MT-', cutoff=[5000, 0.15], norm=False):
         adata = adata[adata.obs['percent_mito'] < cutoff[1], :]     
         
     scv.pp.filter_and_normalize(adata, min_shared_counts=0, n_top_genes=3000)    
-    scv.pp.moments(adata, n_pcs=20, n_neighbors=30)
+    scv.pp.moments(adata, n_pcs=20, n_neighbors=50)
   #  sc.pp.regress_out(adata, ['n_counts', 'percent_mito'])
   #  sc.pp.scale(adata, max_value=10)
     if 'X_umap' not in adata.obsm.keys():
         sc.tl.umap(adata)
     sc.tl.louvain(adata, resolution=0.8)
-    scv.tl.velocity(adata, mode='stochastic')
+    scv.tl.velocity(adata, mode='steady_state', min_r2=1e-5)
     scv.tl.velocity_graph(adata)
     scv.tl.velocity_embedding(adata, basis='umap')
     scv.tl.rank_velocity_genes(adata, match_with='clusters', resolution=0.8)
@@ -147,10 +147,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     print(args.loom)
-    if os.path.exists(f'../results/velocity_previousversion/{args.name}_velocity.h5ad') and os.path.exists(f'../results/velocity_previousversion/{args.name}_velocity.npy'):
+    if os.path.exists(f'../results/velocity_steady/{args.name}_velocity.h5ad') and os.path.exists(f'../results/velocity_steady/{args.name}_velocity.npy'):
         test = []
-        test.append(sc.read_h5ad(f'../results/velocity_previousversion/{args.name}_velocity.h5ad'))
-        test.append(np.load(f'../results/velocity_previousversion/{args.name}_velocity.npy'))
+        test.append(sc.read_h5ad(f'../results/velocity_steady/{args.name}_velocity.h5ad'))
+        test.append(np.load(f'../results/velocity_steady/{args.name}_velocity.npy'))
     else:
         if args.species == 'fish':
             test = compute_velocity(args.loom,
@@ -158,12 +158,11 @@ if __name__ == '__main__':
         else:
             test = compute_velocity(args.loom,
                                     mito_prefix='MT-', cutoff=[8000, 0.2], norm=False)
-        test[0].write(f'../results/velocity_previousversion/{args.name}_velocity.h5ad')
-        np.save(f'../results/velocity_previousversion/{args.name}_velocity.npy', test[1])
+        test[0].write(f'../results/velocity_steady/{args.name}_velocity.h5ad')
+        np.save(f'../results/velocity_steady/{args.name}_velocity.npy', test[1])
 
     clusters, reductions, pos = load_seurat_umap(args, test)
     print(pos)
     rank_genes = pd.DataFrame(test[0].uns['rank_velocity_genes']['names'])
     print(rank_genes.head())
     plot_velocity(test, args.name, pos)
-

@@ -4,27 +4,30 @@ library(doMC)
 library(uwot)
 library(glue)
 library(patchwork)
+library(tidyverse)
 registerDoMC(3)
 
-metacolors <- c(rgb(166, 166, 166, maxColorValue = 255),
-                rgb(241, 149, 69, maxColorValue = 255),
-                rgb(103, 35,  102, maxColorValue = 255),
+metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
+                rgb(236, 133, 40, maxColorValue = 255),
+                rgb(59, 22, 115, maxColorValue = 255),
                 rgb(52, 101, 252, maxColorValue = 255),
                 rgb(242, 242, 242, maxColorValue = 255),
                 rgb(52, 101, 252, maxColorValue = 255),
-                rgb(233, 63,  51, maxColorValue = 255),
-                rgb(65, 129,  7, maxColorValue = 255),
-                rgb(52, 101, 252, maxColorValue = 255),
-                rgb(253, 247, 49, maxColorValue = 255),
-                'purple', 'gray', 'gray', 'gray', 'gray', 'gray')
+                rgb(225, 39, 39, maxColorValue = 255),
+                rgb(72, 159,  75, maxColorValue = 255),
+                rgb(20, 64, 216, maxColorValue = 255),
+                rgb(226, 75, 143, maxColorValue = 255),
+                rgb(158, 60, 200, maxColorValue = 255),
+                rgb(241, 250, 100, maxColorValue = 255))
 metalabels <- c("Ground", "Hypoxia", "EMT",
                 "G1S", "UNASSIGNED",
-                "G2M",  "Muscle", "INTERFERON", "Prolif",
-                "Histone", "TNFA", 'Unique #5', 'Unique #4', 'Unique #3', 'Unique #2', 'Unique #6')
+                "G2M",  "Muscle", "Interferon", "Prolif",
+                "Histone", "Apoptosis", 'UPR')
 names(metacolors) <- metalabels
 
 cols = read.delim('../final_annotations/fish_clusters.txt', sep='\t', row.names=1, header=T,
                   check.names=F, stringsAsFactors=F)
+
 primary <- lapply(c('../results/seurat/Tumor21_unfilter_seurat_obj_tumors.rds',
                     '../results/seurat/Tumor22_unfilter_seurat_obj_tumors.rds',
                     '../results/seurat/Tumor24_unfilter_seurat_obj_tumors.rds'), readRDS)
@@ -132,8 +135,8 @@ subtype = c("ERMS",
             "ARMS", "ARMS")
 
 ## raw.erms.results <- foreach(i=which(subtype=='ERMS')) %dopar% {
-## raw.erms.results <- foreach(i=which(subtype=='ERMS')) %dopar% {
-raw.erms.results <- foreach(i=which(labels.show %in% c("MAST111", "MAST139", "MSK74711", 'MAST39'))) %dopar% {
+raw.erms.results <- foreach(i=which(subtype=='ERMS')) %dopar% {
+## raw.erms.results <- foreach(i=which(labels.show %in% c("MAST111", "MAST139", "MSK74711", 'MAST39'))) %dopar% {
     primary1 = pdxs.objs[[i]]
     input.mat <- as.matrix(primary1@assays$RNA@counts)
     colnames(input.mat) = paste0(colnames(input.mat), '_', labels.show[i])
@@ -255,3 +258,56 @@ arms.df %>% drop_na() %>%
     mutate(pheno = reorder(pheno, CytoTRACE, .fun=median, .desc =F)) %>%
     ggplot(aes(x=fct_reorder(pheno, CytoTRACE, .fun = median, .desc =TRUE), y=CytoTRACE)) + geom_boxplot(aes(fill=pheno))+scale_fill_manual(values=metacolors) + xlab("Phenotype") +  ggpubr:::theme_pubr()
 ggsave('Fig5_arms_box.pdf', width=12)
+
+
+primary.tumors <- lapply(c('20082_recluster2_tumor_only.rds', # '../figures/20082_hg19_premrna_tumoronly_res0.8_umap.rds',
+                           '../figures/20696_hg19_tumoronly_res0.8_umap.rds',
+                           '../figures/21202_hg19_premrna_tumoronly_res0.8_umap.rds',
+                           '../figures/29806_hg19_premrna_tumoronly_res0.8_umap.rds'), readRDS)
+subtype = c('primary', 'primary', 'primary', 'primary')
+labels.show <- c('20082', '20696', '21202', '29806')
+
+cols = read.delim('../final_annotations/primary_clusters.txt', sep='\t', row.names=1, header=T,
+                  check.names=F, stringsAsFactors=F)
+
+
+raw.primary.results <- foreach(i=which(subtype=='primary')) %dopar% {
+    primary1 = primary.tumors[[i]]
+    input.mat <- as.matrix(primary1@assays$RNA@counts)
+    colnames(input.mat) = paste0(colnames(input.mat), '_', labels.show[i])
+    cyto <- CytoTRACE(input.mat)
+    states = unlist(as.vector(cols[labels.show[i], ]))
+    states = states[states!='']
+    primary1$seurat_clusters = primary1$RNA_snn_res.0.8
+    levels(primary1$seurat_clusters) = states
+    pheno <- as.vector(primary1$seurat_clusters)
+    names(pheno) <- colnames(input.mat)
+    emb <- primary1@reductions$umap@cell.embeddings
+    rownames(emb) <- names(pheno)
+    plotCytoTRACE(cyto, phenotype = pheno, gene = "MYOD1", outputDir=glue('{labels.show[i]}_cytotrace'),
+                  emb=emb)
+    ## plotCytoTRACE(cyto, phenotype = pheno, gene = "MYF5", outputDir=glue('{labels[i]}_cytotrace2'),
+    ##               emb=emb, colors=metacolors)
+    ## plotCytoTRACE(cyto, phenotype = pheno, gene = "MYOG", outputDir=glue('{labels[i]}_cytotrace3'),
+    ##               emb=emb, colors=metacolors)
+    ## plotCytoTRACE(cyto, phenotype = pheno, gene = "MYLPF", outputDir=glue('{labels[i]}_cytotrace4'),
+    ##               emb=emb, colors=metacolors)
+    df <- data.frame(CytoTRACE=cyto$CytoTRACE,
+                     pheno=pheno)
+    library(ggplot2)
+    ggplot(df, aes(y=CytoTRACE, x=pheno)) + geom_boxplot()
+    ggsave(glue('{labels.show[i]}_cytotrace_box.pdf'))
+    list(input.mat, pheno, df, emb, labels.show[i])
+}
+
+lapply(raw.primary.results, function(x) {
+    emb = x[[4]]
+    res = cbind(emb, x[[3]])
+    print(head(res))
+    p1=ggplot(res, aes(UMAP_1, UMAP_2, colour=pheno)) + geom_point() +
+        scale_color_manual(values=metacolors) + ggpubr::theme_pubr()
+    p2=ggplot(res, aes(UMAP_1, UMAP_2, colour=CytoTRACE)) + geom_point() +
+        scale_colour_gradient2(low="white", high="red") + ggpubr::theme_pubr()
+    p1 + p2
+    ggsave(glue('{x[[5]]}_primary_umap_cytotrace.pdf'), width=12.5, height=5)
+})
