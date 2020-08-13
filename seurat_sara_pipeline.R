@@ -45,17 +45,28 @@ doublet <- args$doublet
 ## mixture.samples <-'20082_hg19_premrna/outs/filtered_feature_bc_matrix'
 ## doublet <- '../results/20082_hg19_premrna_doublet_doublet.csv'
 
+## names <- 'C12SC1'
+## samples <- '/data/langenau/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/C12SC1_hg19/outs/filtered_feature_bc_matrix'
+## mixture.samples <- '/data/langenau/alvin_singlecell/01_rms_projects/01_fish/data/cellranger_counts/C12SC1_mixture/outs/filtered_feature_bc_matrix'
+## doublet <- '../results/C12SC1_hg19_doublet_doublet.csv'
+
 mat <- Read10X(samples[1])
 
 doublet = read.csv(doublet, stringsAsFactors=F)
+
+colnames(mat) <- gsub('-1', '', colnames(mat))
+
 cells = gsub('-1', '', doublet[,2])
+
 non_doublet <- rep(T, nrow(doublet))
 non_doublet[doublet$prediction=='True'] = F
 
 cells = cells[non_doublet]
+
 mat = mat[, colnames(mat)%in%cells]
 
 seurat.obj <- CreateSeuratObject(counts = mat, project=names[1], min.cells = 3, min.features = 1)
+
 seurat.obj[["percent.mito"]] <- PercentageFeatureSet(object = seurat.obj, pattern = "^MT-")
 ## 2) percentage of ribosomal genes
 seurat.obj[["percent.ribo"]] <- PercentageFeatureSet(object = seurat.obj, pattern = "^RP[SL][[:digit:]]")
@@ -88,6 +99,8 @@ seurat.obj[["lib.size.10k"]] <- log10(seurat.obj[["nCount_RNA"]]/1e4+1)
 
 if (!is.na(mixture.samples)) {
     mix.mat <- Read10X(mixture.samples[1])
+    colnames(mix.mat) <- gsub('-1', '', colnames(mix.mat))
+
     fraction.mouse = Matrix::colSums(mix.mat[grepl('mm10', rownames(mix.mat)), ])/Matrix::colSums(mix.mat)
     ## 4) library size for filtering
     seurat.obj[['fraction.mouse']] = fraction.mouse[match(colnames(seurat.obj), names(fraction.mouse))]
@@ -180,7 +193,6 @@ FeaturePlot(seurat.obj, features = "fraction.mouse", reduction = "tsne", cols = 
 }
 dev.off()
 
-
 for (j in c(0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2)) {
     pdf(paste0('../results/seurat_sara/', names[1], "_UMAP_plot_20PCs_res", j, ".pdf"), width = 12, height = 6)
     p1 = DimPlot(seurat.obj, reduction = "umap", group.by = paste0("RNA_snn_res.", j))
@@ -193,4 +205,3 @@ pdf(paste0('../results/seurat_sara/', names[1], "_human_mouse_genes_", ".pdf"), 
 FeaturePlot(object = seurat.obj, reduction = "tsne", cols = c("lightgrey", "red"), order = TRUE, 
             features = c("CTSS", "CD68", "HEXB", "MAFB", "LGALS3", "AIF1", "SRGN", "TYROBP", "SLC15A3", "BCL2A1", "GNGT2"))
 dev.off()
-

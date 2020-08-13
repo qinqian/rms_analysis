@@ -131,10 +131,14 @@ if (args$trans == 'SCT') {
 
 print('test b................')
 
-pdf(paste0("../results/", args$label, "_decide_resolution.pdf"), width=6, height=10)
-clustree(seurat.obj, prefix='SCT_snn_res.')
-dev.off()
+#pdf(paste0("../results/", args$label, "_decide_resolution.pdf"), width=6, height=10)
+#clustree(seurat.obj, prefix='SCT_snn_res.')
+#dev.off()
 
+seurat.obj <- RunPCA(object=seurat.obj)
+seurat.obj <- RunUMAP(object=seurat.obj, dims=1:20)
+seurat.obj <- RunTSNE(object=seurat.obj, dims=1:20)
+seurat.obj <- FindNeighbors(object=seurat.obj) ## use dims later...
 seurat.obj <- FindClusters(seurat.obj, resolution=args$res) ## set resolution
 
 pdf(paste0("../results/", args$label, "_", args$species, "_umap_vs_tsne.pdf"), width=12, height=5)

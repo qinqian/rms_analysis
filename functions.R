@@ -2,33 +2,41 @@ library(ggplot2)
 #human_ortholog = read.table('~/alvin_singlecell/01_rms_projects//01_fish/data/ortholog_mapping/Beagle_fish_human_all_genes.txt', header=T, sep='\t', stringsAsFactors=F)
 
 process_standard <- function(obj, output, assaytype='RNA', regress_mt=T, norm=T) {
-    #if (!norm) {
-    if (F) { 
+    if (!norm) {
+    #if (F) { 
         ## input should always be normalized
         ## SCTransform is incompatible with JackStraw after Seurat 3.1.5
         obj <- SCTransform(obj, assay=assaytype, vars.to.regress = "percent.mt")
+        ## Use the Seurat old normalization
+        ## obj <- NormalizeData(object = obj, normalization.method = "LogNormalize", scale.factor = 10000)
+        ## obj <- FindVariableFeatures(object = obj, selection.method = "vst",
+        ##                             mean.function = ExpMean, dispersion.function = LogVMR,
+        ##                             x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5, nfeatures = 2000)
+        ## obj <- ScaleData(object = obj, genes.use = rownames(obj), #vars.to.regress = c("nUMI", "nGene", "percent.mito"),
+        ##                  model.use = "linear", use.umi = FALSE) 
     }
     obj <- RunPCA(object=obj)
     # this cannot be runned on the SCT... after 3.1.5 Seurat
-    obj <- JackStraw(obj, num.replicate = 100)
-    obj <- ScoreJackStraw(obj, dims=1:20)
-
-    plot1 <- JackStrawPlot(obj, dims=1:20) + ylab("100 resampling")
-    plot2 = ElbowPlot(obj)
-    p <- CombinePlots(plots=list(plot1, plot2))
-    pdf(output, width=18, height=6)
-    print(p)
-    dev.off()
+    #obj <- JackStraw(obj, num.replicate = 100)
+    #obj <- ScoreJackStraw(obj, dims=1:20)
+    #plot1 <- JackStrawPlot(obj, dims=1:20) + ylab("100 resampling")
+    #plot2 = ElbowPlot(obj)
+    #p <- CombinePlots(plots=list(plot1, plot2))
+    #pdf(output, width=18, height=6)
+    #print(p)
+    #dev.off()
     
     obj <- FindNeighbors(object=obj) ## use dims later...
     for (i in seq(0, 1, 0.05)) {
         obj <- FindClusters(object=obj, resolution=i) ## should add algorithm=2 later for better louvain
     }
 
-    pc.pval  <- obj@reductions$pca@jackstraw@overall.p.values
-    pc.num  <- max(pc.pval[pc.pval[,2] <= 1e-3, 1])
-    obj <- RunTSNE(object=obj, dims=1:pc.num)
-    obj <- RunUMAP(object=obj, dims=1:pc.num)
+    #pc.pval  <- obj@reductions$pca@jackstraw@overall.p.values
+    #pc.num  <- max(pc.pval[pc.pval[,2] <= 1e-3, 1])
+    #obj <- RunTSNE(object=obj, dims=1:pc.num)
+    #obj <- RunUMAP(object=obj, dims=1:pc.num)
+    obj <- RunTSNE(object=obj, dims=1:20)
+    obj <- RunUMAP(object=obj, dims=1:20)
     obj
 }
 

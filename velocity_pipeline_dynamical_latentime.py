@@ -49,6 +49,7 @@ def compute_velocity(loom, mito_prefix='MT-', cutoff=[5000, 0.15], norm=False):
     scv.tl.rank_velocity_genes(adata, match_with='clusters', resolution=0.8)
     ##scv.tl.terminal_states(adata, groupby='velocity_clusters')
     ##scv.tl.velocity_pseudotime(adata, groupby='velocity_clusters')
+    print(cells.shape, adata.shape)
     select = np.in1d(cells, adata.obs.index.values)
     return adata, select
 
@@ -60,6 +61,8 @@ def load_seurat_umap(args, test):
         meta = ro.conversion.rpy2py(test_seu.slots['meta.data'])
     if args.species == 'human': 
         #clusters = meta.loc[test[1], 'RNA_snn_res.0.8']
+        print(test[1].shape)
+        print(meta.shape)
         clusters = meta.loc[test[1], 'seurat_clusters'] ## for primary clusters
         #clusters = pandas2ri.ri2py(r['data.frame'](test_seu.slots['meta.data']).rx2('RNA_snn_res.0.8'))[test[1]]
     else:

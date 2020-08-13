@@ -1,6 +1,8 @@
 library(Seurat)
 library(glue)
 library(ComplexHeatmap)
+library(GetoptLong)
+
 source('DEGs_seurat3_sara.R')
 
 metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
@@ -36,12 +38,37 @@ primary.tumors <- lapply(c('20082_recluster2_tumor_only.rds', # '../figures/2008
                            '../figures/29806_hg19_premrna_tumoronly_res0.8_umap.rds'), readRDS)
 
 labels <- c("20082", "20696", "21202", "29806")
-
 erms.topsign = c("ITM2A", "FABP5", "EMILIN1", "RRBP1", "CCND1", "EMP3", "EIF4EBP1", "TSTA3", "ADA", "HMGA2")
 arms.topsign = c("HSPB2", "MYL4", "PIPOX", "TNNT2", "MYOG", "ENO3", "NRN1", "GYPC", "TSPAN3", "TFF3")
 
+cat(erms.topsign, sep='\n', file='../final_annotations/gene_modules/ERMS_core.txt')
+cat(arms.topsign, sep='\n', file='../final_annotations/gene_modules/ARMS_core.txt')
+
+library(colorBrewer)
+library(ggplot2)
+library(circlize)
+
 props = list()
 for (i in 1:length(labels)) {
+metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
+                rgb(236, 133, 40, maxColorValue = 255),
+                rgb(59, 22, 115, maxColorValue = 255),
+                rgb(52, 101, 252, maxColorValue = 255),
+                rgb(242, 242, 242, maxColorValue = 255),
+                rgb(52, 101, 252, maxColorValue = 255),
+                rgb(225, 39, 39, maxColorValue = 255),
+                rgb(72, 159,  75, maxColorValue = 255),
+                rgb(20, 64, 216, maxColorValue = 255),
+                rgb(226, 75, 143, maxColorValue = 255),
+                rgb(158, 60, 200, maxColorValue = 255),
+                rgb(241, 250, 100, maxColorValue = 255),
+                rgb(166, 166, 166, maxColorValue = 255),
+                rgb(166, 166, 166, maxColorValue = 255))
+metalabels <- c("Ground", "Hypoxia", "EMT",
+                "G1S", "UNASSIGNED",
+                "G2M",  "Muscle", "Interferon", "Prolif",
+                "Histone", "Apoptosis", 'UPR', 'Unique#7', 'Unique#8')
+names(metacolors) <- metalabels
     label = labels[i]
     primary_case = primary[[i]]
     tumor = primary.tumors[[i]]
@@ -87,19 +114,23 @@ for (i in 1:length(labels)) {
         do.call('rbind', ylist)
     }
     gene.list = list2df(gene.list)
-    gene.list <- gene.list[as.vector(gene.list[,1])%in%levels(tumor$seurat_clusters), ]
+    cores = gene.list[grepl("core", gene.list[,1]), ]
+    gene.list <- gene.list[as.vector(gene.list[,1])%in%c(levels(tumor$seurat_clusters), 'ARMS_core', 'ERMS_core'), ]
     geneord = names(sort(table(tumor$seurat_clusters)))
     gene.list[,1] = reorder(droplevels(gene.list[,1]),
-                            new.order=geneord[geneord!='Ground'])
+                            new.order=c(geneord[geneord!='Ground'],
+                                        'ARMS_core', 'ERMS_core'))
+    head(gene.list)
     cpm = as.data.frame(apply(as.matrix(tumor$RNA@counts), 2, correct))
-    sortgenes = order(gene.list[, 1])
+n    sortgenes = order(gene.list[, 1])
     gene.list = gene.list[sortgenes,]
     sortcells = order(tumor$seurat_clusters, tumor$RNA_snn_res.0.8)
     heatdata  <- cpm[as.character(gene.list[,2]), sortcells]
     clusters <- tumor$RNA_snn_res.0.8[sortcells]
     annrow <- gene.list[, 1, drop=F]
-    ## rownames(annrow) <- paste0(gene.list[, 1], '.', gene.list[, 2])
-    rownames(annrow) <- gene.list[, 2]
+    rownames(annrow) <- paste0(gene.list[, 1], '.', gene.list[, 2])
+    ## gene.list[grepl("core", gene.list[,1]), 2] = paste0(gene.list[grepl("core", gene.list[,1]), 2], '.1')
+    ## rownames(annrow) <- gene.list[, 2]
     anncol <- data.frame(cluster=tumor$seurat_clusters[sortcells])
     ## mat2 = t(apply(heatdata, 1, function(x) {
     ##     q10 <- quantile(x, 0.1)
@@ -128,6 +159,7 @@ for (i in 1:length(labels)) {
         nn = c(nn, colnames(test)[test[i, ]>0])
     }
     names(cluster_cols)= nn
+    metacolors = c(metacolors, 'ARMS_core'='coral', 'ERMS_core'='chartreuse')
     tiff(glue('Fig4C_{label}_heatmap.tiff'), units="in", width=12, height=5, res=320)
     topha = HeatmapAnnotation(states=as.vector(anncol[,1]),
                               clusters=as.vector(clusters),
@@ -165,7 +197,6 @@ for (i in seq_along(labels)) {
 }
 write.table(cell.prop, file='primary_tumor_all_cells.xls', quote=F, sep='\t', col.names=NA)
 
-
 annotation <- read.delim('../final_annotations/fish_clusters.txt', sep='\t', check.names=F,
                          row.names=1)
 
@@ -181,6 +212,25 @@ human_ortholog = read.table('~/langenau/01_rms_projects/01_fish/data/ortholog_ma
 
 props = list()
 for (i in 1:length(labels)) {
+metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
+                rgb(236, 133, 40, maxColorValue = 255),
+                rgb(59, 22, 115, maxColorValue = 255),
+                rgb(52, 101, 252, maxColorValue = 255),
+                rgb(242, 242, 242, maxColorValue = 255),
+                rgb(52, 101, 252, maxColorValue = 255),
+                rgb(225, 39, 39, maxColorValue = 255),
+                rgb(72, 159,  75, maxColorValue = 255),
+                rgb(20, 64, 216, maxColorValue = 255),
+                rgb(226, 75, 143, maxColorValue = 255),
+                rgb(158, 60, 200, maxColorValue = 255),
+                rgb(241, 250, 100, maxColorValue = 255),
+                rgb(166, 166, 166, maxColorValue = 255),
+                rgb(166, 166, 166, maxColorValue = 255))
+metalabels <- c("Ground", "Hypoxia", "EMT",
+                "G1S", "UNASSIGNED",
+                "G2M",  "Muscle", "Interferon", "Prolif",
+                "Histone", "Apoptosis", 'UPR', 'Unique#7', 'Unique#8')
+names(metacolors) <- metalabels
     label = labels[i]
     primary_case = primary[[i]]
     tumor = primary.tumors[[i]]
@@ -226,12 +276,15 @@ for (i in 1:length(labels)) {
         do.call('rbind', ylist)
     }
     gene.list = list2df(gene.list)
-    gene.list <- gene.list[as.vector(gene.list[,1])%in%levels(tumor$seurat_clusters), ]
+    cores = gene.list[grepl("core", gene.list[,1]), ]
+    gene.list <- gene.list[as.vector(gene.list[,1])%in%c(levels(tumor$seurat_clusters), 'ARMS_core', 'ERMS_core'), ]
+    ## gene.list <- gene.list[as.vector(gene.list[,1])%in%levels(tumor$seurat_clusters), ]
     gene.list$gene <- human_ortholog[match(gene.list[, 2], human_ortholog[,3]), 2]
     gene.list <- gene.list[complete.cases(gene.list), ]
     geneord = names(sort(table(tumor$seurat_clusters)))
     gene.list[,1] = reorder(droplevels(gene.list[,1]),
-                            new.order=geneord[geneord!='Ground'])
+                            new.order=c(geneord[geneord!='Ground'],
+                                        'ARMS_core', 'ERMS_core'))
     cpm = as.data.frame(apply(as.matrix(tumor$RNA@counts), 2, correct))
     sortgenes = order(gene.list[, 1])
     gene.list = gene.list[sortgenes,]
@@ -244,8 +297,8 @@ for (i in 1:length(labels)) {
     }
     heatdata  <- cpm[as.character(gene.list[,2]), sortcells]
     annrow <- gene.list[, 1, drop=F]
-    ## rownames(annrow) <- paste0(gene.list[, 1], '.', gene.list[, 2])
-    rownames(annrow) <- gene.list[, 2]
+    rownames(annrow) <- paste0(gene.list[, 1], '.', gene.list[, 2])
+    ## rownames(annrow) <- gene.list[, 2]
     anncol <- data.frame(cluster=tumor$seurat_clusters[sortcells])
     ## mat2 = t(apply(heatdata, 1, function(x) {
     ##     q10 <- quantile(x, 0.1)
@@ -278,7 +331,8 @@ for (i in 1:length(labels)) {
         nn = c(nn, colnames(test)[test[i, ]>0])
     }
     names(cluster_cols)= nn
-    tiff(glue('Fig4C_{label}_heatmap.tiff'), units="in", width=8, height=6, res=300)
+    metacolors = c(metacolors, 'ARMS_core'='coral', 'ERMS_core'='chartreuse')
+    tiff(glue('Fig4C_{label}_heatmap.tiff'), units="in", width=12, height=5, res=300)
     topha = HeatmapAnnotation(states=as.vector(anncol[,1]),
                               clusters=as.vector(clusters),
                               col=list(states=metacolors,
@@ -314,4 +368,3 @@ for (i in seq_along(labels)) {
     cell.prop[labels[i], names(props[[labels[i]]])] = props[[labels[i]]]
 }
 write.table(cell.prop, file='fish_tumor_all_cells.xls', quote=F, sep='\t', col.names=NA)
-

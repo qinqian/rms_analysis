@@ -13,12 +13,10 @@ output=${3}
 genome=${4}
 
 #module load cellranger/3.0.2 # when using bsub
-export PATH=/data/langenau/alvin_singlecell/01_rms_projects/01_fish/software/cellranger-3.1.0/:${PATH}
+export PATH=/PHShome/qq06/projects/01_sc_rms/phaseA_explore_rms/cellranger-3.1.0/:${PATH}
 cellranger count --id=${output} \
                  --transcriptome=${genome} \
                  --fastqs=${input} \
                  --sample=${prefix} \
-                 --localcores=10 \
+                 --localcores=8 \
                  --localmem=32
-                 #--localcores=32 \
-                 #--localmem=200

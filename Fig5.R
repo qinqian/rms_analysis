@@ -6,6 +6,7 @@ library(glue)
 library(patchwork)
 library(tidyverse)
 registerDoMC(3)
+library(Seurat)
 
 metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
                 rgb(236, 133, 40, maxColorValue = 255),
@@ -27,7 +28,6 @@ names(metacolors) <- metalabels
 
 cols = read.delim('../final_annotations/fish_clusters.txt', sep='\t', row.names=1, header=T,
                   check.names=F, stringsAsFactors=F)
-
 primary <- lapply(c('../results/seurat/Tumor21_unfilter_seurat_obj_tumors.rds',
                     '../results/seurat/Tumor22_unfilter_seurat_obj_tumors.rds',
                     '../results/seurat/Tumor24_unfilter_seurat_obj_tumors.rds'), readRDS)
@@ -35,6 +35,16 @@ primary.tumors <- lapply(c('../results/seurat_v6/Tumor21_recluster1.8.rds',
                            '../results/seurat_v6/Tumor22_recluster1.8.rds',
                            '../results/seurat_intersect_velocity/Tumor24_seu.rds'), readRDS)
 labels <- c("Tumor21", "Tumor22", "Tumor24")
+
+pdf('zebrafish_myf5_myplfa.pdf', width=6.8, height=8)
+p1 = FeaturePlot(primary.tumors[[1]], c('myf5')) + ggtitle('Tumor21 myf5')
+p1_1 = FeaturePlot(primary.tumors[[1]], c('mylpfa'))+ggtitle('Tumor21 mylpfa')
+p2 = FeaturePlot(primary.tumors[[2]], c('myf5'))+ggtitle('Tumor22 myf5')
+p2_1 = FeaturePlot(primary.tumors[[2]], c('mylpfa'))+ggtitle('Tumor22 mylpfa')
+p3 = FeaturePlot(primary.tumors[[3]], c('myf5'))+ggtitle('Tumor24 myf5')
+p3_1 = FeaturePlot(primary.tumors[[3]], c('mylpfa'))+ggtitle('Tumor24 mylpfa')
+print(p1+p1_1+p2+p2_1+p3+p3_1+plot_layout(ncol=2))
+dev.off()
 
 raw.erms.results <- foreach(i=1:length(labels)) %dopar% {
     primary1 = primary.tumors[[i]]
@@ -59,9 +69,12 @@ raw.erms.results <- foreach(i=1:length(labels)) %dopar% {
     df <- data.frame(CytoTRACE=cyto$CytoTRACE,
                      pheno=pheno)
     library(ggplot2)
-    ## ggplot(df, aes(y=CytoTRACE, x=pheno)) + geom_boxplot()
-    df %>% mutate(pheno = reorder(pheno, CytoTRACE, .fun=median, .desc =F)) %>%
-    ggplot(aes(x=fct_reorder(pheno, CytoTRACE, .fun = median, .desc =TRUE), y=CytoTRACE)) + geom_boxplot(aes(fill=pheno)) + scale_fill_manual(values=metacolors) + xlab("Phenotype") + ggpubr:::theme_pubr() #+ geom_jitter(aes(alpha=0.1), position=pos
+    ## ## ggplot(df, aes(y=CytoTRACE, x=pheno)) + geom_boxplot()
+    ## df %>% mutate(pheno = reorder(pheno, CytoTRACE, .fun=median, .desc =F)) %>%
+    ##     ggplot(aes(x=fct_reorder(pheno, CytoTRACE, .fun = median, .desc =TRUE), y=CytoTRACE)) + geom_boxplot(aes(fill=pheno)) + scale_fill_manual(values=metacolors) + xlab("Phenotype") + ggpubr:::theme_pubr() #+ geom_jitter(aes(alpha=0.1), position=pos
+    df %>% drop_na() %>%
+        mutate(pheno = reorder(pheno, CytoTRACE, .fun=median, .desc =F)) %>%
+        ggplot(aes(x=fct_reorder(pheno, CytoTRACE, .fun = median, .desc =TRUE), y=CytoTRACE)) + geom_boxplot(aes(fill=pheno)) + scale_fill_manual(values=metacolors) + xlab("Phenotype") + ggpubr:::theme_pubr() #+ geom_jitter(aes(alpha=0.1), position=position_jitter(0.25))
     ggsave(glue('{labels[i]}_cytotrace_box.pdf'))
     list(input.mat, pheno, df, emb, labels[i])
 }
@@ -77,6 +90,9 @@ lapply(raw.erms.results, function(x) {
     p1 + p2
     ggsave(glue('{x[[5]]}_umap_cytotrace.pdf'), width=12.5, height=5)
 })
+
+
+
 
 erms.results <- iCytoTRACE(lapply(raw.erms.results, function(x) x[[1]]))
 erms.pheno <- unlist(lapply(raw.erms.results, function(x) {x[2]}))
@@ -120,8 +136,9 @@ labels[13] = 'MSK72117'
 labels[14] = 'MAST139-1'
 labels[10] = 'RH74-10'
 
-labels.show = labels[-grep("-", labels)]
-pdxs.objs = pdxs.objs[-grep("-", labels)]
+## labels.show = labels[-grep("-", labels)]
+## pdxs.objs = pdxs.objs[-grep("-", labels)]
+labels.show = labels
 
 subtype = c("ERMS",
             "ERMS",
@@ -134,8 +151,8 @@ subtype = c("ERMS",
             "ERMS",
             "ARMS", "ARMS")
 
+raw.erms.results <- foreach(i=seq(1, length(labels))) %dopar% {
 ## raw.erms.results <- foreach(i=which(subtype=='ERMS')) %dopar% {
-raw.erms.results <- foreach(i=which(subtype=='ERMS')) %dopar% {
 ## raw.erms.results <- foreach(i=which(labels.show %in% c("MAST111", "MAST139", "MSK74711", 'MAST39'))) %dopar% {
     primary1 = pdxs.objs[[i]]
     input.mat <- as.matrix(primary1@assays$RNA@counts)
@@ -160,7 +177,10 @@ raw.erms.results <- foreach(i=which(subtype=='ERMS')) %dopar% {
     df <- data.frame(CytoTRACE=cyto$CytoTRACE,
                      pheno=pheno)
     library(ggplot2)
-    ggplot(df, aes(y=CytoTRACE, x=pheno)) + geom_boxplot()
+    ## ggplot(df, aes(y=CytoTRACE, x=pheno)) + geom_boxplot()
+    df %>% drop_na() %>%
+        mutate(pheno = reorder(pheno, CytoTRACE, .fun=median, .desc =F)) %>%
+        ggplot(aes(x=fct_reorder(pheno, CytoTRACE, .fun = median, .desc =TRUE), y=CytoTRACE)) + geom_boxplot(aes(fill=pheno)) + scale_fill_manual(values=metacolors) + xlab("Phenotype") + ggpubr:::theme_pubr() #+ geom_jitter(aes(alpha=0.1), position=position_jitter(0.25)) 
     ggsave(glue('{labels.show[i]}_cytotrace_box.pdf'))
     list(input.mat, pheno, df, emb, labels.show[i])
 }
@@ -270,7 +290,6 @@ labels.show <- c('20082', '20696', '21202', '29806')
 cols = read.delim('../final_annotations/primary_clusters.txt', sep='\t', row.names=1, header=T,
                   check.names=F, stringsAsFactors=F)
 
-
 raw.primary.results <- foreach(i=which(subtype=='primary')) %dopar% {
     primary1 = primary.tumors[[i]]
     input.mat <- as.matrix(primary1@assays$RNA@counts)
@@ -295,7 +314,10 @@ raw.primary.results <- foreach(i=which(subtype=='primary')) %dopar% {
     df <- data.frame(CytoTRACE=cyto$CytoTRACE,
                      pheno=pheno)
     library(ggplot2)
-    ggplot(df, aes(y=CytoTRACE, x=pheno)) + geom_boxplot()
+    df %>% drop_na() %>%
+        mutate(pheno = reorder(pheno, CytoTRACE, .fun=median, .desc =F)) %>%
+        ggplot(aes(x=fct_reorder(pheno, CytoTRACE, .fun = median, .desc =TRUE), y=CytoTRACE)) + geom_boxplot(aes(fill=pheno)) + scale_fill_manual(values=metacolors) + xlab("Phenotype") + ggpubr:::theme_pubr() #+ geom_jitter(aes(alpha=0.1), position=position_jitter(0.25)) 
+    ## ggplot(df, aes(y=CytoTRACE, x=pheno)) + geom_boxplot()
     ggsave(glue('{labels.show[i]}_cytotrace_box.pdf'))
     list(input.mat, pheno, df, emb, labels.show[i])
 }

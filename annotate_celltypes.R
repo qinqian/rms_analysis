@@ -1,6 +1,6 @@
 ## library(nichenetr)
 library(Seurat)
-library(cellassign)
+#library(cellassign)
 library(tidyverse)
 library(vroom)
 library(clusterProfiler)
@@ -69,7 +69,7 @@ pdf(glue('{args$label}_with_clusterlabel.pdf'), width=6, height=4)
 if (args$species != 'fish') {
     primary1_obj.copy$seurat_clusters = primary1_obj.copy$RNA_snn_res.0.8
 }
-DimPlot(primary1_obj.copy, reduction='umap', group.by='seurat_clusters', label = TRUE, legend = "none")
+DimPlot(primary1_obj.copy, reduction='umap', group.by='seurat_clusters', label = TRUE) #, legend = "none")
 dev.off()
 
 pdf(glue('{args$label}_erms_markers.pdf'), width=30, height=10)
@@ -196,52 +196,51 @@ allann <- allann[order(allann$cluster), ]
 allann$ID <- rownames(allann)
 readr::write_csv(allann, path=glue('{args$label}_all_annotation.csv'))
 
-quit()
+#quit()
 library(data.table)
 
 DT <- data.table(allann)
 gsea.ann <- DT[, lapply(.SD, function(x) paste(head(x[order(p.adjust)], 5), collapse='|  ')), by=cluster, .SDcols=3]
 
-data(example_TME_markers)
-library(SingleCellExperiment)
-primary1.sce = as.SingleCellExperiment(primary1_obj)
-sizeFactors(primary1.sce) <- colSums(assay(primary1.sce))
+#data(example_TME_markers)
+#library(SingleCellExperiment)
+#primary1.sce = as.SingleCellExperiment(primary1_obj)
+#sizeFactors(primary1.sce) <- colSums(assay(primary1.sce))
+#
+#if (args$species == 'fish') {
+#    example_TME_markers$symbol = lapply(example_TME_markers$symbol, function(x) {
+#        human_ortholog[human_ortholog$Hsortholog %in% x, 'Gene']
+#    })
+#}
+#
+#marker_mat = marker_list_to_mat(example_TME_markers$symbol)
+#
+#sce_marker <- primary1.sce[intersect(rownames(marker_mat), rownames(primary1.sce)),]
+#s = sizeFactors(sce_marker)
+#sce_marker = sce_marker[, s > 0]
+#s = s[s > 0]
+#cas <- cellassign(exprs_obj = sce_marker,
+#                  marker_gene_info = marker_mat[intersect(rownames(marker_mat), rownames(primary1.sce)),],
+#                  s = s)
+#colnames(sce_marker)
 
-if (args$species == 'fish') {
-    example_TME_markers$symbol = lapply(example_TME_markers$symbol, function(x) {
-        human_ortholog[human_ortholog$Hsortholog %in% x, 'Gene']
-    })
-}
+#primary1.objann = subset(primary1_obj, cells=colnames(sce_marker))
+#primary1.objann$seurat_clusters = cas$cell_type
+#pdf(glue('{args$label}_cellassign.pdf'), width=6, height=4)
+#DimPlot(primary1.objann, reduction='umap', group.by='seurat_clusters')
+#dev.off()
 
-marker_mat = marker_list_to_mat(example_TME_markers$symbol)
-
-sce_marker <- primary1.sce[intersect(rownames(marker_mat), rownames(primary1.sce)),]
-s = sizeFactors(sce_marker)
-sce_marker = sce_marker[, s > 0]
-s = s[s > 0]
-cas <- cellassign(exprs_obj = sce_marker,
-                  marker_gene_info = marker_mat[intersect(rownames(marker_mat), rownames(primary1.sce)),],
-                  s = s)
-colnames(sce_marker)
-
-primary1.objann = subset(primary1_obj, cells=colnames(sce_marker))
-primary1.objann$seurat_clusters = cas$cell_type
-
-pdf(glue('{args$label}_cellassign.pdf'), width=6, height=4)
-DimPlot(primary1.objann, reduction='umap', group.by='seurat_clusters')
-dev.off()
-
-if (args$species == 'human') {
-    levels(primary1_obj$RNA_snn_res.0.8)[match(gsea.ann$cluster, levels(primary1_obj$RNA_snn_res.0.8))] <- gsea.ann$ID
-} else {
-    levels(primary1_obj$seurat_clusters)[match(gsea.ann$cluster, levels(primary1_obj$seurat_clusters))] <- gsea.ann$ID
-}
-
-pdf(glue('{args$label}_clusterprofiler.pdf'), width=20, height=9)
-if (args$species == 'human') {
-    DimPlot(primary1_obj, reduction='umap', group.by='RNA_snn_res.0.8')
-} else {
-    DimPlot(primary1_obj, reduction='umap', group.by='seurat_clusters')
-}
-dev.off()
-
+#if (args$species == 'human') {
+#    levels(primary1_obj$RNA_snn_res.0.8)[match(gsea.ann$cluster, levels(primary1_obj$RNA_snn_res.0.8))] <- gsea.ann$ID
+#} else {
+#    levels(primary1_obj$seurat_clusters)[match(gsea.ann$cluster, levels(primary1_obj$seurat_clusters))] <- gsea.ann$ID
+#}
+#
+#pdf(glue('{args$label}_clusterprofiler.pdf'), width=20, height=9)
+#if (args$species == 'human') {
+#    DimPlot(primary1_obj, reduction='umap', group.by='RNA_snn_res.0.8')
+#} else {
+#    DimPlot(primary1_obj, reduction='umap', group.by='seurat_clusters')
+#}
+#dev.off()
+#

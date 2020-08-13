@@ -96,6 +96,7 @@ pdf('../figures/three_zebrafish_integration.pdf', width=10, height=8)
 DimPlot(fish.obj, reduction='umap', group.by = 'orig.ident')
 dev.off()
 
+
 primary.obj <- Reduce("merge", list(
                                 readRDS('../results/seurat_sara/20082_hg19_premrna_seurat-object.rds'),
                                 readRDS('../results/seurat_sara/21202_hg19_premrna_seurat-object.rds'),
