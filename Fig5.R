@@ -28,6 +28,7 @@ names(metacolors) <- metalabels
 
 cols = read.delim('../final_annotations/fish_clusters.txt', sep='\t', row.names=1, header=T,
                   check.names=F, stringsAsFactors=F)
+
 primary <- lapply(c('../results/seurat/Tumor21_unfilter_seurat_obj_tumors.rds',
                     '../results/seurat/Tumor22_unfilter_seurat_obj_tumors.rds',
                     '../results/seurat/Tumor24_unfilter_seurat_obj_tumors.rds'), readRDS)
@@ -124,9 +125,7 @@ pdxs = c(pdxs, '../results/seurat_sara/20191031_MSK74711_seurat-object.rds',
          '../results/seurat_sara/MAST118_seurat-object.rds',
          '../results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds',
          '../results/seurat_sara/MAST139_1cells_seurat-object.rds')
-
 pdxs.objs = lapply(pdxs, readRDS)
-
 labels = unlist(lapply(pdxs.objs, function(x) {
     levels(x$orig.ident[1])
 }))

@@ -8,6 +8,8 @@ library(foreach)
 library(Seurat)
 library(readr)
 
+system('mkdir -p ../results/seurat_sara')
+
 get_args = function(x) {
     require(argparse)
     parser = ArgumentParser(description='seurat normalization')
@@ -52,18 +54,18 @@ doublet <- args$doublet
 
 mat <- Read10X(samples[1])
 
-doublet = read.csv(doublet, stringsAsFactors=F)
-
 colnames(mat) <- gsub('-1', '', colnames(mat))
 
-cells = gsub('-1', '', doublet[,2])
 
-non_doublet <- rep(T, nrow(doublet))
-non_doublet[doublet$prediction=='True'] = F
-
-cells = cells[non_doublet]
-
-mat = mat[, colnames(mat)%in%cells]
+print(doublet)
+if (doublet!="") {
+    doublet = read.csv(doublet, stringsAsFactors=F)
+    cells = gsub('-1', '', doublet[,2])
+    non_doublet <- rep(T, nrow(doublet))
+    non_doublet[doublet$prediction=='True'] = F
+    cells = cells[non_doublet]
+    mat = mat[, colnames(mat)%in%cells]
+}
 
 seurat.obj <- CreateSeuratObject(counts = mat, project=names[1], min.cells = 3, min.features = 1)
 
@@ -71,6 +73,7 @@ seurat.obj[["percent.mito"]] <- PercentageFeatureSet(object = seurat.obj, patter
 ## 2) percentage of ribosomal genes
 seurat.obj[["percent.ribo"]] <- PercentageFeatureSet(object = seurat.obj, pattern = "^RP[SL][[:digit:]]")
 
+print(111)
 ## calculate mouse ratio by sara
 ## map.counts <- read.delim(paste0(projectPathEris, "mapstats/", files.mapstats[i]), header = F, sep = " ", stringsAsFactors = F)
 ## df <- map.counts %>%
@@ -141,6 +144,42 @@ dev.off()
 
 if (!is.na(mixture.samples)) {
     seurat.obj <- subset(x = seurat.obj, subset = nFeature_RNA > 1000 & nFeature_RNA < 8000 & percent.mito < 20)
+
+    print(max(seurat.obj@meta.data$fraction.mouse))
+    print(summary(seurat.obj@meta.data$fraction.mouse))
+
+    seurat.obj2 <- NormalizeData(object = seurat.obj, normalization.method = "LogNormalize", scale.factor = 10000)
+    seurat.obj2 <- FindVariableFeatures(object = seurat.obj2, selection.method = "vst",
+                                       mean.function = ExpMean, dispersion.function = LogVMR,
+                                       x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5, nfeatures = 2000)
+    if (!is.na(mixture.samples)) {
+        seurat.obj2 <- ScaleData(object = seurat.obj2, genes.use = rownames(seurat.obj2), 
+                                vars.to.regress = c("nUMI", "nGene", "percent.mito", "percent.ribo", "fraction.mouse"),
+                                model.use = "linear", use.umi = FALSE) 
+    } else {
+        seurat.obj2 <- ScaleData(object = seurat.obj2, genes.use = rownames(seurat.obj2), 
+                                vars.to.regress = c("nUMI", "nGene", "percent.mito", "percent.ribo"), 
+                                model.use = "linear", use.umi = FALSE) 
+    }
+    highvar.genes <- head(VariableFeatures(object = seurat.obj2), 1000)
+    seurat.obj2 <- RunPCA(object = seurat.obj2, features = highvar.genes,
+                         npcs = 50, ndims.print = 1:5, nfeatures.print = 1:5,
+                         reduction.name = "pca", reduction.key = "PC_", seed.use = 123)
+    seurat.obj2 <- JackStraw(object = seurat.obj2, num.replicate = 100)
+    seurat.obj2 <- ScoreJackStraw(object = seurat.obj2, dims = 1:20)
+    seurat.obj2 <- FindNeighbors(object = seurat.obj2, k.param = 20, dims = 1:20, reduction = "pca")
+    seurat.obj2 <- FindClusters(object = seurat.obj2, reduction.type = "pca", dims.use = 1:20, 
+                               algorithm = 1, 
+                               resolution = c(0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2),
+                               random.seed = 123)
+    seurat.obj2 <- RunUMAP(seurat.obj2, reduction.use = "pca", dims = 1:20, reduction.name = "umap")
+    seurat.obj2@meta.data$mouse <- seurat.obj2@meta.data$fraction.mouse >= 0.05
+
+    pdf(paste0('../results/seurat_sara/', names[1], "_UMAP_with_mouse", ".pdf"), width = 8.2, height = 5)
+    p1 = DimPlot(seurat.obj2, reduction = "umap", group.by='mouse')
+    print(p1)
+    dev.off()
+
     seurat.obj <- subset(seurat.obj, cells=names(which(fraction.mouse < 0.05)))
 } else {
     seurat.obj <- subset(x = seurat.obj, subset = nFeature_RNA > 1000 & nFeature_RNA < 8000 & percent.mito < 20)
@@ -180,7 +219,6 @@ seurat.obj <- FindClusters(object = seurat.obj, reduction.type = "pca", dims.use
 seurat.obj <- RunUMAP(seurat.obj, reduction.use = "pca", dims = 1:20, reduction.name = "umap")
 seurat.obj <- RunTSNE(seurat.obj, reduction.use = "pca", dims.use = 1:20, reduction.name = "tsne")
 
-system('mkdir -p ../results/seurat_sara')
 saveRDS(seurat.obj, file = paste0('../results/seurat_sara/', names[1], "_seurat-object", ".rds"))
 
 pdf(paste0('../results/seurat_sara/', names[1], "_seurat-object_QC", ".pdf"), width = 6, height = 6)

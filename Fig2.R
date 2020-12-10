@@ -4,10 +4,12 @@ library(Seurat)
 library(pheatmap)
 library(gplots)
 library(RColorBrewer)
+library(tidyverse)
 
 pdxs = Sys.glob('../data/seurat_obj/*rds')[1:10]
 annotation = read.delim('../final_annotations/Final_clusters.txt', sep='\t', row.names=1, header=T,
                         check.names=F, stringsAsFactors=F)
+
 mast39 = readRDS(pdxs[4])
 mast95 = readRDS(pdxs[6])
 
@@ -43,18 +45,18 @@ pdf("Fig2A_MAST39.pdf", width=5, height=3.5)
 print(DimPlot(mast39, group.by='RNA_snn_res.0.8', cols=metacolors, label=F))
 dev.off()
 
-pdf("Fig2A_MAST39_markers.pdf", width=13.5, height=3.5)
+pdf("Fig2A_MAST39_markers.pdf", width=22, height=3.5)
 FeaturePlot(mast39,
-            features=c("MYOD1", "MYOG", "DES"), ncol=3)
+            features=c("MYOD1", "MYOG", "DES", "MYC", "CCND1"), ncol=5)
 dev.off()
 
 pdf("Fig2A_MAST95.pdf", width=5, height=3.5)
 print(DimPlot(mast95, group.by='RNA_snn_res.0.8', cols=metacolors, label=F))
 dev.off()
 
-pdf("Fig2A_MAST95_markers.pdf", width=13.5, height=3.5)
+pdf("Fig2A_MAST95_markers.pdf", width=22, height=3.5)
 FeaturePlot(mast95,
-            features=c("MYOD1", "MYOG", "DES"), ncol=3)
+            features=c("MYOD1", "MYOG", "DES", "MYC", "CCND1"), ncol=5)
 dev.off()
 
 library(ggplot2)
@@ -340,3 +342,89 @@ p3=DotPlot(mast39, features=arms.topsign, col.min=0, col.max=3, scale.min=0, sca
 p4=DotPlot(mast95, features=arms.topsign, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='RNA_snn_res.0.8')+xlab("Modules")+ylab("Genes")+ggtitle('MAST95 ARMS core')+RotatedAxis()
 (p1 | p2) / (p3 | p4)
 dev.off()
+
+
+pdf("Fig2C_dotplot.pdf", width=11, height=8)
+p1=DotPlot(mast39, features=erms.topsign, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='RNA_snn_res.0.8')+xlab("Modules")+ylab("Genes")+ggtitle('MAST39 ERMS core')+RotatedAxis()
+p2=DotPlot(mast95, features=erms.topsign, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='RNA_snn_res.0.8')+xlab("Modules")+ylab("Genes")+ggtitle('MAST95 ERMS core')+RotatedAxis()
+p3=DotPlot(mast39, features=arms.topsign, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='RNA_snn_res.0.8')+xlab("Modules")+ylab("Genes")+ggtitle('MAST39 ARMS core')+RotatedAxis()
+p4=DotPlot(mast95, features=arms.topsign, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='RNA_snn_res.0.8')+xlab("Modules")+ylab("Genes")+ggtitle('MAST95 ARMS core')+RotatedAxis()
+(p1 | p2) / (p3 | p4)
+dev.off()
+
+
+MAST111 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST111.rds')
+MAST139 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST139.rds')
+MAST39 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST39.rds')
+RH74 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_RH74.rds')
+MAST95 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST95.rds')
+MAST85 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST85.rds')
+MSK82489 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MSK82489.rds')
+MAST35 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST35.rds')
+## new added samples
+MSK72117_10cells = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds')
+MAST118 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/MAST118_seurat-object.rds')
+MSK74711 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK74711_seurat-object.rds')
+
+MSK72117_10cells@meta.data$orig.ident = gsub('tencell', '', gsub('20191031_', '', MSK72117_10cells@meta.data$orig.ident))
+MSK74711@meta.data$orig.ident = gsub('20191031_', '', MSK74711@meta.data$orig.ident)
+
+all.obj = Reduce('merge', list(MAST111, MAST139, MAST39, RH74, MAST95, MAST85, MSK82489, MAST35,
+                               MSK72117_10cells, MAST118, MSK74711))
+
+
+library(ggplot2)
+library(reshape)
+
+annotation$tumor = rownames(annotation)
+annotation$subtype = c("ERMS",
+            "ARMS",
+            "ARMS",
+            "ERMS",
+            "ERMS",
+            "ERMS",
+            "ERMS",
+            "ERMS",
+            "ARMS", "ARMS", "ERMS", "ERMS", "ERMS", "ERMS", "ARMS")
+
+annotation.melt = reshape2::melt(annotation,
+                                 id.vars=c('tumor', 'subtype'),
+                                 measure.vars=colnames(annotation)[-c(15, 16)])
+
+annotation.melt$tumor.cluster = paste0(annotation.melt$tumor, "_",
+                                       annotation.melt$variable)
+
+annotation.melt = annotation.melt[annotation.melt[,3] != "", ]
+
+head(all.obj@meta.data[is.na(match(paste0(all.obj@meta.data$orig.ident, "_", all.obj@meta.data$RNA_snn_res.0.8),
+      annotation.melt$tumor.cluster)),])
+
+all.obj@meta.data$state = annotation.melt[match(paste0(all.obj@meta.data$orig.ident, "_", all.obj@meta.data$RNA_snn_res.0.8),
+      annotation.melt$tumor.cluster), 4]
+
+all.obj@meta.data$subtype = as.numeric(factor(annotation.melt[match(paste0(all.obj@meta.data$orig.ident, "_", all.obj@meta.data$RNA_snn_res.0.8),
+      annotation.melt$tumor.cluster), 2]))
+
+all.obj@meta.data$tumor.state = paste0(all.obj@meta.data$orig.ident, '_', all.obj@meta.data$state)
+
+all.obj@meta.data$tumor.state2 = factor(all.obj@meta.data$tumor.state)
+
+all.obj@meta.data = all.obj@meta.data %>%
+    mutate(name = fct_reorder(tumor.state2, subtype))
+
+other.marker = c("DES", "MYOD1", "MYC")
+
+pdf("SuppFig_dotplot.pdf", width=18, height=20)
+p1=Seurat::DotPlot(all.obj, cols = c("lightgrey", "red"), features=erms.topsign, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='name')+ylab("Tumor state")+xlab("Genes")+ggtitle('ERMS core')+RotatedAxis()+theme(legend.position="none")
+p2=Seurat::DotPlot(all.obj, cols = c("lightgrey", "red"), features=arms.topsign, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='name')+ylab("")+xlab("Genes")+ggtitle('ARMS core')+RotatedAxis()+theme(legend.position="none")
+p3=Seurat::DotPlot(all.obj, cols = c("lightgrey", "red"), features=other.marker, col.min=0, col.max=3, scale.min=0, scale.max=100, dot.scale=6, group.by='name')+ylab("")+xlab("Genes")+ggtitle('Other')+RotatedAxis()
+print(p1+p2+p3)
+dev.off()
+
+primary <- lapply(c('../results/seurat/Tumor21_unfilter_seurat_obj_tumors.rds',
+                    '../results/seurat/Tumor22_unfilter_seurat_obj_tumors.rds',
+                    '../results/seurat/Tumor24_unfilter_seurat_obj_tumors.rds'), readRDS)
+primary.tumors <- lapply(c('../results/seurat_v6/Tumor21_recluster1.8.rds',
+                           '../results/seurat_v6/Tumor22_recluster1.8.rds',
+                           '../results/seurat_intersect_velocity/Tumor24_seu.rds'), readRDS)
+labels <- c("Tumor21", "Tumor22", "Tumor24")

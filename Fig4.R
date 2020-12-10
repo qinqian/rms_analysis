@@ -122,7 +122,7 @@ names(metacolors) <- metalabels
                                         'ARMS_core', 'ERMS_core'))
     head(gene.list)
     cpm = as.data.frame(apply(as.matrix(tumor$RNA@counts), 2, correct))
-n    sortgenes = order(gene.list[, 1])
+    sortgenes = order(gene.list[, 1])
     gene.list = gene.list[sortgenes,]
     sortcells = order(tumor$seurat_clusters, tumor$RNA_snn_res.0.8)
     heatdata  <- cpm[as.character(gene.list[,2]), sortcells]

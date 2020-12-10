@@ -116,6 +116,7 @@ list2df <- function(x) {
         ylist[[y]] = data.frame(module=y, gene=x[[y]])
     }
     do.call('rbind', ylist)
+    ## ylist
 }
 gene.list <- list2df(gene.list)
 
@@ -124,6 +125,7 @@ cell_markers <- vroom::vroom('http://bio-bigdata.hrbmu.edu.cn/CellMarker/downloa
    tidyr::unite("cellMarker", cellName, sep=", ") %>%
    dplyr::select(cellMarker, geneSymbol) %>%
    dplyr::mutate(geneID = strsplit(geneSymbol, ', '))
+
 saveRDS(cell_markers, file='../data/cancersea/cellmarkers.rds')
 
 cancersea <- lapply(Sys.glob("../data/cancersea/*txt"), read.table, header=T)
