@@ -37,12 +37,30 @@ primary.tumors <- lapply(c('20082_recluster2_tumor_only.rds', # '../figures/2008
                            '../figures/21202_hg19_premrna_tumoronly_res0.8_umap.rds',
                            '../figures/29806_hg19_premrna_tumoronly_res0.8_umap.rds'), readRDS)
 
+allpdx.meta2 = do.call('rbind', list(primary.tumors[[1]]@meta.data,
+                                     primary.tumors[[2]]@meta.data,
+                                     primary.tumors[[3]]@meta.data,
+                                     primary.tumors[[4]]@meta.data
+                                     ))
+
+nrow(allpdx.meta2)
+
+summary (allpdx.meta2[, c ('nFeature_RNA')])
+
+sd (allpdx.meta2[, c ('nFeature_RNA')])
+
+
 labels <- c("20082", "20696", "21202", "29806")
 erms.topsign = c("ITM2A", "FABP5", "EMILIN1", "RRBP1", "CCND1", "EMP3", "EIF4EBP1", "TSTA3", "ADA", "HMGA2")
 arms.topsign = c("HSPB2", "MYL4", "PIPOX", "TNNT2", "MYOG", "ENO3", "NRN1", "GYPC", "TSPAN3", "TFF3")
 
 cat(erms.topsign, sep='\n', file='../final_annotations/gene_modules/ERMS_core.txt')
 cat(arms.topsign, sep='\n', file='../final_annotations/gene_modules/ARMS_core.txt')
+
+core.sig = read.table('tables_storage/RMS_core_t_test_pval0.05_fold1.5.xls')
+test = rowMeans(core.sig[,1:4]) - rowMeans(core.sig[,5:11])
+erms.topsign = rownames(core.sig)[test<0]
+arms.topsign = rownames(core.sig)[test>0]
 
 library(colorBrewer)
 library(ggplot2)

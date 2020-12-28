@@ -75,6 +75,7 @@ all.obj@meta.data$orig.ident2 [all.obj@meta.data$orig.ident2=='MSK72117tencell']
 saveRDS(all.obj, file='../data/seurat_obj/all_PDX_samples_excludeRH74.RDS')
 
 ## all.obj <- readRDS ('../data/seurat_obj/all_PDX_samples.RDS')
+all.obj <- readRDS ('../data/seurat_obj/all_PDX_samples_excludeRH74.RDS')
 
 ## pdf('../figures/all_eight_QC.pdf', width=60, height=6)
 
@@ -85,8 +86,8 @@ dev.off()
 
 library (ggrepel)
 
-pdf('../figures/all_mouse_pdx_integration.pdf', width=12, height=10)
-DimPlot(all.obj, reduction='umap', group.by='orig.ident2', label=T) #+geom_text_repel()
+pdf('../figures/all_mouse_pdx_integration.pdf', width=6, height=4)
+DimPlot(all.obj, reduction='umap', group.by='orig.ident2', label=F) #+geom_text_repel()
 dev.off()
 
 ## tumor24 = readRDS('../results/seurat_intersect_velocity/Tumor24_seu.rds')

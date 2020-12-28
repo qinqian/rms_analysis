@@ -3,6 +3,13 @@ library(GetoptLong)
 library(RColorBrewer)
 library(ComplexHeatmap)
 library(circlize)
+library(Seurat)
+library(glue)
+library(ComplexHeatmap)
+library(GetoptLong)
+library(ColorBrewer)
+library(ggplot2)
+library(circlize)
 
 pdxs = Sys.glob('../data/seurat_obj/*rds')[1:10]
 
@@ -24,6 +31,26 @@ labels[11] = 'MSK74711'
 labels[13] = 'MSK72117'
 labels[14] = 'MAST139-1'
 labels[10] = 'RH74-10'
+
+allpdx.meta = do.call('rbind', list(pdxs.objs[[1]]@meta.data,
+                                    pdxs.objs[[2]]@meta.data,
+                                    pdxs.objs[[3]]@meta.data,
+                                    pdxs.objs[[4]]@meta.data,
+                                    pdxs.objs[[5]]@meta.data,
+                                    pdxs.objs[[6]]@meta.data,
+                                    pdxs.objs[[7]]@meta.data
+                                    ))
+
+
+allpdx.meta2 = do.call('rbind', list(pdxs.objs[[11]]@meta.data,
+                                     pdxs.objs[[12]]@meta.data,
+                                     pdxs.objs[[13]]@meta.data
+                                     ))
+
+nrow(allpdx.meta) + nrow(allpdx.meta2)
+
+summary (c (allpdx.meta [, c ('nFeature_RNA')], allpdx.meta2[, c ('nFeature_RNA')]))
+sd (c (allpdx.meta [, c ('nFeature_RNA')], allpdx.meta2[, c ('nFeature_RNA')]))
 
 results = list()
 for (i in seq_along(labels)) {
@@ -57,21 +84,26 @@ metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
                 rgb(72, 159,  75, maxColorValue = 255),
                 rgb(20, 64, 216, maxColorValue = 255),
                 rgb(226, 75, 143, maxColorValue = 255),
-                rgb(158, 60, 200, maxColorValue = 255))
-
+                rgb(158, 60, 200, maxColorValue = 255),
+                'orange',
+                'lightblue')
 metalabels <- c("Ground", "Hypoxia", "EMT",
                 "G1S", "UNASSIGNED",
                 "G2M",  "Muscle", "INTERFERON", "Prolif",
-                "Histone", "Apoptosis")
+                "Histone", "Apoptosis",
+                'ARMS core', 'ERMS core')
+core.sig = read.table('tables_storage/RMS_core_t_test_pval0.05_fold1.5.xls')
+test = rowMeans(core.sig[,1:4]) - rowMeans(core.sig[,5:11])
+erms.topsign = rownames(core.sig)[test<0]
+arms.topsign = rownames(core.sig)[test>0]
 
 names(metacolors) <- metalabels
-
 cols = metacolors[levels(pdxs.objs[[1]]$RNA_snn_res.0.8)]
 
 pdf("Fig1_MAST111.pdf", width=9.2, height=3.5)
 p1=DimPlot(pdxs.objs[[1]], group.by='seurat_clusters', label=F)
 p2=DimPlot(pdxs.objs[[1]], group.by='RNA_snn_res.0.8', label=F,
-           cols=cols, legend=F)
+           cols=cols)
 print(CombinePlots(plots=list(p1, p2), ncol=2))
 dev.off()
 
@@ -89,16 +121,23 @@ list2df <- function(x) {
 
 gene.list <- list2df(gene.list)
 gene.list <- gene.list[gene.list[,1]%in%levels(pdxs.objs[[1]]$RNA_snn_res.0.8), ]
+core.sig = read.table('tables_storage/RMS_core_t_test_pval0.05_fold1.5.xls')
+test = rowMeans(core.sig[,1:4]) - rowMeans(core.sig[,5:11])
+gene.list = rbind(gene.list, data.frame(module='ERMS core', gene=rownames(core.sig)[test<0]))
+gene.list = rbind(gene.list, data.frame(module='ARMS core', gene=rownames(core.sig)[test>0]))
 
 library(ComplexHeatmap)
-tumor = pdxs.objs[[1]]
+library(ggplot2)
+library(dplyr)
+library(gdata)
 
+tumor = pdxs.objs[[1]]
 df = read.table(paste0('../results/seurat_sara/20190624_seurat-object_MAST111_SCT_res0.8.xls'))
 tumor$RNA_snn_res.0.8 = reorder(tumor$RNA_snn_res.0.8,
                                 new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'Apoptosis', 'Ground'))
 
 gene.list[,1] = reorder(droplevels(gene.list[,1]),
-                        new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'Apoptosis'))
+                        new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'Apoptosis', 'ARMS core', 'ERMS core'))
 
 
 source('DEGs_seurat3_sara.R')
@@ -134,7 +173,8 @@ for (i in seq_along(rownames(test))) {
 
 annrow <- gene.list[, 1, drop=F]
 ## rownames(annrow) <- paste0(gene.list[, 1], '.', gene.list[, 2])
-rownames(annrow) <- gene.list[, 2]
+rownames(annrow) <- paste0(gene.list[,1], gene.list[, 2])
+
 anncol <- data.frame(cluster=tumor$RNA_snn_res.0.8[sortcells])
 ## ha = structure(brewer.pal(length(unique(anncol[, 1])), "Set3"),
 ##                names=levels(anncol[, 1]))
@@ -153,8 +193,8 @@ mat2 = mat2[selection, ]
 annrow = annrow[selection, ,drop=F]
 ## anncol = anncol[selection, ,drop=F]
 
-## pdf('Fig1_MAST111heatmap.pdf', width=10, height=8)
-tiff('Fig1_MAST111heatmap.tif', units="in", width=12, height=6, res=320)
+pdf('Fig1_MAST111heatmap.pdf', width=10, height=8)
+## tiff('Fig1_MAST111heatmap.tif', units="in", width=18, height=6, res=320)
 topha = HeatmapAnnotation(states=as.vector(anncol[,1]),
                           clusters=clusters,
                           col=list(states=cols,

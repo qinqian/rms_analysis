@@ -30,9 +30,9 @@ if __name__ == '__main__':
     print(counts_matrix.shape)
     scrub = scr.Scrublet(counts_matrix, expected_doublet_rate=0.06)
     #scrub.call_doublets(threshold=0.25)
-    doublet_scores, predicted_doublets = scrub.scrub_doublets(min_counts=2, 
-                                                              min_cells=3, 
-                                                              min_gene_variability_pctl=85, 
+    doublet_scores, predicted_doublets = scrub.scrub_doublets(min_counts=2,
+                                                              min_cells=3,
+                                                              min_gene_variability_pctl=85,
                                                               n_prin_comps=30)
     print(cells.shape)
     print(doublet_scores.shape)
@@ -48,4 +48,3 @@ if __name__ == '__main__':
     print('Done.')
     scrub.plot_embedding('UMAP', order_points=True);
     plt.savefig('../results/%s_scrub_umap.pdf' % args.name)
-

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import sys
 import os
 from rpy2.robjects.packages import importr
@@ -33,7 +32,7 @@ def compute_velocity(loom, mito_prefix='MT-', cutoff=[5000, 0.15], norm=False):
         adata.obs['percent_mito'] = np.sum(
             adata[:, mito_genes].X, axis=1).A1 / np.sum(adata.X, axis=1).A1
         adata = adata[adata.obs['n_genes'] < cutoff[0], :]
-        adata = adata[adata.obs['percent_mito'] < cutoff[1], :]     
+        adata = adata[adata.obs['percent_mito'] < cutoff[1], :]
     scv.pp.filter_and_normalize(adata, min_shared_counts=30, n_top_genes=2000)
     scv.pp.moments(adata, n_pcs=30, n_neighbors=30)
     sc.pp.neighbors(adata, n_neighbors=30, n_pcs=30)
@@ -59,7 +58,7 @@ def load_seurat_umap(args, test):
     #meta = pandas2ri.ri2py(r['data.frame'](test_seu.slots['meta.data'])) ## old version rpy2
     with localconverter(ro.default_converter + pandas2ri.converter):
         meta = ro.conversion.rpy2py(test_seu.slots['meta.data'])
-    if args.species == 'human': 
+    if args.species == 'human':
         #clusters = meta.loc[test[1], 'RNA_snn_res.0.8']
         print(test[1].shape)
         print(meta.shape)
@@ -76,7 +75,7 @@ def load_seurat_umap(args, test):
         test[0].obsm['X_umap']  = reductions.loc[test[1], :].values
         red = reductions.loc[test[1], :]
     else:   # fish used the spliced umap
-        reductions = test[0].obsm['umap_cell_embeddings'] 
+        reductions = test[0].obsm['umap_cell_embeddings']
         test[0].obsm['X_umap'] = test[0].obsm['umap_cell_embeddings']  ## already filtered again by scvelo, no need [test[1],:]
         red = pd.DataFrame(reductions)
 
@@ -86,21 +85,27 @@ def load_seurat_umap(args, test):
     #test[0].obs['louvain']  = clusters
 
     if args.species == 'human':
-        metalabels = np.array(["GROUND", "Hypoxia", "EMT", "G1S", "UNASSIGNED", "G2M",
-                               "MUSCLE", "INTERFERON", "PROLIF", "Histones"])
+        metalabels = np.array(["Ground", "Hypoxia", "EMT", "G1S", "UNASSIGNED", "G2M",
+                               "Muscle", "INTERFERON", "Prolif", "Histones", "Unique #2_4", "Unique #3", "Unique #2_4_6", "Unique #3_5_Muscle"])
         metacolors = np.array(["#8D510B", "#F19545", "#672366", "#3465FC", "#F2F2F2",
-                               "#3465FC", "#E93F33", "#418107", "#3465FC", "#F769A1"])
-        colortab = pd.read_table('color_table.xls')
+                               "#3465FC", "#E93F33", "#418107", "#3465FC", "#F769A1", 'gray', 'gray', 'gray', 'gray'])
+        #colortab = pd.read_table('color_table.xls')
+        colortab = pd.read_table('../final_annotations/Final_clusters.txt', index_col=0)
+        #colortab = pd.read_table('../final_annotations/cellline_annotation.txt', index_col=0)
+        print(colortab)
         metalabels_dict = {}
         for i, m in enumerate(metalabels):
             metalabels_dict[m] = i
-        colors = np.array([ metalabels_dict[m] for m in colortab.loc[:, args.name].dropna() ])
+        #colors = np.array([ metalabels_dict[m] for m in colortab.loc[:, args.name].dropna() ])
+        colors = np.array([ metalabels_dict[m] for m in colortab.loc[args.name, :].dropna() ])
 
         ## merge the same cluster label
         color_dict = {}
         color_dict2 = {}
-        for i, j, c in zip(range(len(colortab.loc[:, args.name].dropna())), 
-                           colortab.loc[:, args.name].dropna(), 
+        #for i, j, c in zip(range(len(colortab.loc[:, args.name].dropna())),
+        #                   colortab.loc[:, args.name].dropna()):
+        for i, j, c in zip(range(len(colortab.loc[args.name, :].dropna())),
+                           colortab.loc[args.name, :].dropna(),
                            metacolors[colors]):
             color_dict[str(i)] = j
             color_dict2[j] = c
@@ -109,6 +114,7 @@ def load_seurat_umap(args, test):
         print(test[0].obs['clusters'])
         print(test[0].uns['clusters_colors'])
     else:
+        #colortab = pd.read_table('fish_color_table.txt')
         colortab = pd.read_table('fish_color_table.txt')
         test[0].obs['clusters'].cat.categories = np.array([str(i) + '_' +colortab.loc[:, args.name].dropna()[i] for i in range(len(colortab.loc[:, args.name].dropna()))])
     print(test[0].obs['clusters'].cat.categories)
@@ -129,7 +135,7 @@ def plot_velocity(test, name, pos):
     fig, axes = plt.subplots(2, 3)
     fig.set_size_inches(20, 10)
     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0.3)
-    ax1=scv.pl.velocity_embedding_stream(test[0], basis='umap', color=['clusters'], 
+    ax1=scv.pl.velocity_embedding_stream(test[0], basis='umap', color=['clusters'],
                                          legend_fontsize=15, show=False, ax=axes[0][0])
     #ax1=scv.pl.velocity_embedding(test[0], basis='umap', color=['clusters'], arrow_length=5, arrow_size=1.5,
     #                              legend_fontsize=15, show=False, ax=axes[0][0])
@@ -145,7 +151,7 @@ def plot_velocity(test, name, pos):
             for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                           ax.get_xticklabels() + ax.get_yticklabels()):
                 item.set_fontsize(25)
-    fig.set_tight_layout({"pad": 2}) 
+    fig.set_tight_layout({"pad": 2})
     plt.savefig(f'../results/velocity_dynamical/{name}_velocity_paga.png') ## due to ValueError: Can only output finite numbers in PDF
 
 
