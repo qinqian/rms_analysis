@@ -2,6 +2,11 @@ library(Seurat)
 library(glue)
 library(ComplexHeatmap)
 library(GetoptLong)
+library(here)
+library(gdata)
+library(colorBrewer)
+library(ggplot2)
+library(circlize)
 
 source('DEGs_seurat3_sara.R')
 
@@ -62,10 +67,6 @@ test = rowMeans(core.sig[,1:4]) - rowMeans(core.sig[,5:11])
 erms.topsign = rownames(core.sig)[test<0]
 arms.topsign = rownames(core.sig)[test>0]
 
-library(colorBrewer)
-library(ggplot2)
-library(circlize)
-
 props = list()
 for (i in 1:length(labels)) {
 metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
@@ -98,27 +99,27 @@ names(metacolors) <- metalabels
     tumor$RNA_snn_res.0.8 = tumor$seurat_clusters
     levels(tumor$seurat_clusters) = states
     props[[label]] = table(tumor$seurat_clusters)
-    pdf(glue("Fig4A_{label}.pdf"), width=12.5, height=4)
-    p1 = DimPlot(primary_case, group.by='seurat_clusters')
-    p2 = DimPlot(tumor, group.by='seurat_clusters', cols=metacolors)
-    print(CombinePlots(plots=list(p1, p2), ncol=2))
-    dev.off()
-    pdf(glue("Fig4A_{label}_label.pdf"), width=12.5, height=4)
-    p1 = DimPlot(primary_case, group.by='RNA_snn_res.0.8')
-    p2 = DimPlot(tumor, group.by='RNA_snn_res.0.8')
-    print(CombinePlots(plots=list(p1, p2), ncol=2))
-    dev.off()
-    pdf(glue("Supp2_{label}_dot.pdf"), width=19, height=4)
-    p1 <- DotPlot(tumor, features=erms.topsign,
-                  cols = c("lightgrey", "red"), group.by='seurat_clusters')
-    p2 <- DotPlot(tumor, features=arms.topsign,
-                  cols = c("lightgrey", "red"), group.by='seurat_clusters')
-    print(CombinePlots(plots=list(p1, p2)), ncol=2)
-    dev.off()
-    pdf(glue("Supp2_{label}_marker.pdf"), width=8.5, height=5)
-    p2 <- FeaturePlot(tumor, features=c("MYOD1", "MYF5", "MYOG", "MYLPF"))
-    print(p2)
-    dev.off()
+    ## pdf(glue("Fig4A_{label}.pdf"), width=12.5, height=4)
+    ## p1 = DimPlot(primary_case, group.by='seurat_clusters')
+    ## p2 = DimPlot(tumor, group.by='seurat_clusters', cols=metacolors)
+    ## print(CombinePlots(plots=list(p1, p2), ncol=2))
+    ## dev.off()
+    ## pdf(glue("Fig4A_{label}_label.pdf"), width=12.5, height=4)
+    ## p1 = DimPlot(primary_case, group.by='RNA_snn_res.0.8')
+    ## p2 = DimPlot(tumor, group.by='RNA_snn_res.0.8')
+    ## print(CombinePlots(plots=list(p1, p2), ncol=2))
+    ## dev.off()
+    ## pdf(glue("Supp2_{label}_dot.pdf"), width=19, height=4)
+    ## p1 <- DotPlot(tumor, features=erms.topsign,
+    ##               cols = c("lightgrey", "red"), group.by='seurat_clusters')
+    ## p2 <- DotPlot(tumor, features=arms.topsign,
+    ##               cols = c("lightgrey", "red"), group.by='seurat_clusters')
+    ## print(CombinePlots(plots=list(p1, p2)), ncol=2)
+    ## dev.off()
+    ## pdf(glue("Supp2_{label}_marker.pdf"), width=8.5, height=5)
+    ## p2 <- FeaturePlot(tumor, features=c("MYOD1", "MYF5", "MYOG", "MYLPF"))
+    ## print(p2)
+    ## dev.off()
     tumor$seurat_clusters = reorder(tumor$seurat_clusters,
                                     new.order=names(sort(table(tumor$seurat_clusters))))
     gene.modules <- Sys.glob('../final_annotations/gene_modules/*txt')

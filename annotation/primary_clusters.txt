@@ -1,0 +1,5 @@
+RMS Sample	0	1	2	3	4	5	6	7	8	9	10	11	12
+21202	Ground	Ground	Ground	Hypoxia	Muscle	EMT	EMT	Ground	Ground	Prolif	Ground	Ground	Muscle
+20696	Prolif	Ground	Muscle	Ground	Ground	Ground	EMT	EMT	Prolif	Interferon			
+29806	Ground	Ground	Ground	Ground	Ground	Interferon	Prolif	Prolif	Apoptosis	EMT	Ground		
+20082	Ground	Muscle	Ground	Muscle	Prolif	Ground	Ground	EMT	Apoptosis	Prolif	Unique#7	Unique#8	

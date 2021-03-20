@@ -1,0 +1,16 @@
+PDX_Sample	0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
+MSK74711	EMT	Ground	Ground	EMT	Prolif	Muscle	Prolif	Ground	Unique #1	Interferon				
+MSK72117	Ground	Ground	Ground	Neural	Ground	Neural	Neural	Ground	Prolif	Prolif	Muscle	Prolif	Muscle	Neural	Muscle	Prolif
+MAST118	Prolif	Muscle	Ground	Ground	Ground	Prolif	Prolif	Prolif	Prolif	Prolif	UPR	EMT	Unique #5	Apoptosis
+MAST111	Ground	Hypoxia	EMT	Ground	Prolif	Apoptosis	Prolif	EMT	Muscle					
+MAST139	Prolif	Hypoxia	Prolif	EMT	Ground	EMT	Muscle	EMT	Interferon	EMT				
+MAST35	Ground	Histone	Ground	Prolif	Histone	Prolif	Hypoxia	Ground	Interferon	Prolif				
+MAST39	Ground	Histone	Ground	Prolif	Prolif	Histone	Hypoxia	Prolif	Prolif	Interferon	EMT	EMT		
+MAST85	Ground	Prolif	Histone	Prolif	Prolif	Prolif	Hypoxia	Interferon	Ground					
+MAST95	Ground	Hypoxia	Muscle	Prolif	Prolif	Prolif	UPR	Ground	Unique#6	Hypoxia	Muscle			
+MSK82489	Ground	Prolif	Prolif	Muscle	Hypoxia	Prolif	Prolif							
+RH74	Ground	Prolif	Histone	Hypoxia	Ground	Histone	Prolif	Prolif	Prolif	Prolif	Interferon			
+MAST85-1	Histone	Hypoxia	Ground	Histone	Ground	Ground	Prolif	Prolif	Interferon	Interferon	EMT	
+MAST139-1	Prolif	Ground	Prolif	Hypoxia	Prolif	Ground	Muscle	EMT	Hypoxia	Interferon	Muscle	Hypoxia
+RH74-10	Ground	Histone	Prolif	Prolif	Ground	Ground	Hypoxia	Apoptosis	Interferon	Prolif	Interferon	
+MSK72117-1	Ground	Neural	Prolif	Ground	Muscle	Ground	Prolif	Neural	Ground	Neural	Neural	Ground	Prolif	Prolif

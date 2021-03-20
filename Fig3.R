@@ -91,17 +91,26 @@ names(metacolors) <- metalabels
 
 integrated.seurat3@meta.data$orig.ident[integrated.seurat3@meta.data$orig.ident=='MAST139_1cells'] = 'MAST139-1cell'
 
+mast139 = cbind(integrated.seurat3@meta.data, integrated.seurat3@reductions$umap@cell.embeddings)
+write.csv(mast139, file='mast139_sc_bulk_embed.csv')
+
 integrated.seurat4@meta.data$orig.ident[integrated.seurat4@meta.data$orig.ident=='C12SC2'] = 'MSK72117-1cell'
 
 integrated.seurat4@meta.data$orig.ident[integrated.seurat4@meta.data$orig.ident!='MSK72117-1cell'] = 'MSK72117'
 
+msk72117 = cbind(integrated.seurat4@meta.data, integrated.seurat4@reductions$umap@cell.embeddings)
+write.csv(msk72117, file='msk72117_sc_bulk_embed.csv')
+
 write.csv(table(integrated.seurat4$seurat_clusters, integrated.seurat4@meta.data[,1]), file='MSK72117.csv', quote=F)
 ## table(integrated.seurat3$seurat_clusters, integrated.seurat3@meta.data[,1])
 
-integrated.seurat4$seurat_clusters[grep("Unique", integrated.seurat4$seurat_clusters)] = 'Unique'
+## integrated.seurat4$seurat_clusters[grep("Unique", integrated.seurat4$seurat_clusters)] = 'Unique'
 
 ## pdf('Fig3D.pdf', width=5.2, height=8.5)
-pdf('Fig3D.pdf', width=8, height=9.5)
+## pdf('Fig3D.pdf', width=8, height=9.5)
+library(ggplot2)
+
+pdf('Fig3D_new.pdf', width=8, height=9.5)
 p1d=DimPlot(integrated.seurat1, reduction='umap', split.by='orig.ident', group.by='seurat_clusters', label=F, cols=metacolors)+ theme(legend.position='right')
 p3d=DimPlot(integrated.seurat3, reduction='umap', split.by='orig.ident', group.by='seurat_clusters', label=F, cols=metacolors) + theme(legend.position='right')
 p4d=DimPlot(integrated.seurat4, reduction='umap', split.by='orig.ident', group.by='seurat_clusters', label=F, cols=metacolors) + theme(legend.position='right')

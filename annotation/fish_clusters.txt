@@ -1,0 +1,4 @@
+RMS Sample	0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16
+Tumor21	Ground	Ground	Ground	Ground	Prolif	Muscle	Hypoxia	EMT	Ground	EMT	EMT	Ground	Ground	Ground	EMT	Muscle	Ground
+Tumor22	UPR	Ground	Ground	Ground	EMT	EMT	Prolif	Prolif	Ground	EMT	Ground	Ground	Muscle	UPR	Muscle	EMT	Hypoxia
+Tumor24	EMT	Ground	Ground	Ground	Hypoxia	Ground	EMT	Muscle	Hypoxia	Prolif							

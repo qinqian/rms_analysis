@@ -85,13 +85,14 @@ metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
                 rgb(20, 64, 216, maxColorValue = 255),
                 rgb(226, 75, 143, maxColorValue = 255),
                 rgb(158, 60, 200, maxColorValue = 255),
-                'orange',
-                'lightblue')
+                'gray',
+                'yellow')
 metalabels <- c("Ground", "Hypoxia", "EMT",
                 "G1S", "UNASSIGNED",
                 "G2M",  "Muscle", "INTERFERON", "Prolif",
                 "Histone", "Apoptosis",
                 'ARMS core', 'ERMS core')
+
 core.sig = read.table('tables_storage/RMS_core_t_test_pval0.05_fold1.5.xls')
 test = rowMeans(core.sig[,1:4]) - rowMeans(core.sig[,5:11])
 erms.topsign = rownames(core.sig)[test<0]
@@ -121,6 +122,7 @@ list2df <- function(x) {
 
 gene.list <- list2df(gene.list)
 gene.list <- gene.list[gene.list[,1]%in%levels(pdxs.objs[[1]]$RNA_snn_res.0.8), ]
+
 core.sig = read.table('tables_storage/RMS_core_t_test_pval0.05_fold1.5.xls')
 test = rowMeans(core.sig[,1:4]) - rowMeans(core.sig[,5:11])
 gene.list = rbind(gene.list, data.frame(module='ERMS core', gene=rownames(core.sig)[test<0]))
@@ -139,6 +141,9 @@ tumor$RNA_snn_res.0.8 = reorder(tumor$RNA_snn_res.0.8,
 gene.list[,1] = reorder(droplevels(gene.list[,1]),
                         new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'Apoptosis', 'ARMS core', 'ERMS core'))
 
+## gene.list[,1] = reorder(droplevels(gene.list[,1]),
+##                         new.order=c('Prolif', 'Muscle', 'Hypoxia', 'EMT', 'Apoptosis'))
+
 
 source('DEGs_seurat3_sara.R')
 
@@ -153,7 +158,7 @@ heatdata  <- cpm[as.character(gene.list[,2]), sortcells]
 clusters <- tumor$seurat_clusters[sortcells]
 
 test=(cbind(as.vector(tumor$RNA_snn_res.0.8), as.vector(tumor$seurat_clusters)))
-test=table(test[,1],test[,2])
+test=table(test[,1], test[,2])
 
 cluster_cols=rep('gray', 9)
 names(cluster_cols)= 0:8
@@ -176,25 +181,27 @@ annrow <- gene.list[, 1, drop=F]
 rownames(annrow) <- paste0(gene.list[,1], gene.list[, 2])
 
 anncol <- data.frame(cluster=tumor$RNA_snn_res.0.8[sortcells])
+
 ## ha = structure(brewer.pal(length(unique(anncol[, 1])), "Set3"),
 ##                names=levels(anncol[, 1]))
 ## colsrow = cols[as.vector(annrow[,1])]
 ## mat2 = t(apply(log2(heatdata+1), 1, function(x) {
 mat2 = t(apply(heatdata, 1, function(x) {
-    q10 <- quantile(x, 0.1)
-    q90 <- quantile(x, 0.9)
-    x[x < q10] <- q10
-    x[x > q90] <- q90
-    scale(x, scale=T)
-##    (x-mean(x))/ sd(x) ^ as.logical(sd(x))
-}))
+                                         q10 <- quantile(x, 0.1)
+                                         q90 <- quantile(x, 0.9)
+                                         x[x < q10] <- q10
+                                         x[x > q90] <- q90
+                                         scale(x, scale=T)
+                                         ##    (x-mean(x))/ sd(x) ^ as.logical(sd(x))
+                                         }))
 selection = complete.cases(mat2)
 mat2 = mat2[selection, ]
 annrow = annrow[selection, ,drop=F]
 ## anncol = anncol[selection, ,drop=F]
 
-pdf('Fig1_MAST111heatmap.pdf', width=10, height=8)
-## tiff('Fig1_MAST111heatmap.tif', units="in", width=18, height=6, res=320)
+names (metacolors) = metalabels
+## pdf('Fig1_MAST111heatmap.pdf', width=10, height=8)
+tiff('Fig1_MAST111heatmap.tif', units="in", width=18, height=6, res=320)
 topha = HeatmapAnnotation(states=as.vector(anncol[,1]),
                           clusters=clusters,
                           col=list(states=cols,
@@ -202,8 +209,9 @@ topha = HeatmapAnnotation(states=as.vector(anncol[,1]),
                           show_legend=T,
                           gp = gpar(col = NA),
                           border = c(states=F, clusters=T))
-leftha = rowAnnotation(modules=annrow[, 1],
-                       col=list(modules=cols),
+leftha = rowAnnotation(modules=as.vector(annrow[,1]),
+                       ## col=list(modules=cols),
+                       col = list (modules=metacolors),
                        gp = gpar(col = NA))
 ha = Heatmap(mat2, name = "Scaled Expression",
              use_raster = TRUE, raster_quality = 2,
