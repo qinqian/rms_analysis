@@ -1,0 +1,36 @@
+import glob
+import os
+
+path = config['path']
+genome = '/data/pinello/PROJECTS/2019_11_ResidualVelocity/data/latest_kb_index/human/nucleus/'
+
+fastqs = glob.glob(f'{path}/*fastq.gz')
+fastqs = filter(lambda x: '_R1_' in x, fastqs)
+
+INPUT_DICT = {}
+for i in fastqs:
+    pre = os.path.basename(i).replace('_R1_001.fastq.gz', '').split('_')[0]
+    fq1 = glob.glob(path+f'{pre}_*_R1_001.fastq.gz')
+    INPUT_DICT[pre.split('_')[0]] = ' '.join([ "%s %s" % (f, f.replace('_R1', '_R2')) for f in fq1 ])
+
+print(INPUT_DICT)
+TARGETS = '../data/{sample}/{sample}_kb/counts_unfiltered/adata.h5ad'
+TARGETS = expand(TARGETS, sample=list(INPUT_DICT.keys()))
+print(TARGETS)
+
+rule all:
+    input:
+        TARGETS
+
+rule alignment:
+    input:
+        fq = path
+    output:
+        '../data/{sample}/{sample}_kb/counts_unfiltered/adata.h5ad'
+    threads: 8
+    params:
+        genome = genome,
+        fq_10x = lambda wildcards: INPUT_DICT[wildcards.sample]
+    shell:
+        'mkdir -p ../data/{wildcards.sample}/{wildcards.sample}_kb && cd ../data/{wildcards.sample}/{wildcards.sample}_kb && kb count --h5ad -i {params.genome}/index.idx -g {params.genome}/t2g.txt -x 10XV3 -o . -c1 {params.genome}/cdna_t2c.txt -c2 {params.genome}/intron_t2c.txt --workflow nucleus --filter bustools -t {threads} {params.fq_10x}'
+
