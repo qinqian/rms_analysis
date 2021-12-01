@@ -228,3 +228,4 @@ ha = Heatmap(mat2, name = "Scaled Expression",
              left_annotation=leftha)
 draw(ha)
 dev.off()
+

@@ -81,6 +81,15 @@ anncol <- data.frame(cluster=rd$RNA_snn_res.0.8[sortcells])
 
 ## mat2= t(scale(t(heatdata)))
 mat2 = t(apply(heatdata, 1, function(y) (y - mean(y)) / sd(y) ^ as.logical(sd(y))))
+## mat2 = t(apply(heatdata, 1, function(x) {
+##     q10 <- quantile(x, 0.1, na.rm=T)
+##     q90 <- quantile(x, 0.9, na.rm=T)
+##     x[x < q10] <- q10
+##     x[x > q90] <- q90
+##     scale(x)
+## }))
+## selection = complete.cases(mat2)
+## mat2 = mat2[selection, ]
 
 (a<-levels(clusters))
 test=cbind(as.vector(rd$seurat_clusters)[sortcells], as.vector(rd$RNA_snn_res.0.8)[sortcells])
@@ -99,7 +108,8 @@ for (i in seq_along(rownames(test))) {
 names(cluster_cols)= nn
 metacolors = c(metacolors, 'ARMS_core'='coral', 'ERMS_core'='chartreuse')
 
-tiff(glue('Fig4C_{label}_heatmap.tiff'), units="in", width=18, height=4.5, res=320)
+## tiff(glue('Fig4C_{label}_heatmap.tiff'), units="in", width=16, height=7.5, res=300)
+pdf(glue('Fig4C_{label}_heatmap.pdf'), width=16, height=7.5)
 topha = HeatmapAnnotation(states=as.vector(anncol[,1]),
                           clusters=as.vector(clusters),
                           col=list(states=metacolors,

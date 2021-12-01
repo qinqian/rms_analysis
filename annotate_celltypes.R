@@ -1,6 +1,6 @@
 ## library(nichenetr)
 library(Seurat)
-#library(cellassign)
+library(cellassign)
 library(tidyverse)
 library(vroom)
 library(clusterProfiler)
@@ -17,13 +17,14 @@ get_args = function(x) {
 }
 
 args = get_args()
+
 if (length(args$seurat) == 0 || args$label == '') {
     cat('empty argument, exit..')
     q()
 }
 
-## args$seurat <- '../results/seurat_sara/20696_seurat-object.rds'
-## args$label <- '20696'
+args$seurat <- '../results/seurat_sara/20696_seurat-object.rds'
+args$label <- '20696'
 
 ## args$seurat <- '../results/seurat_sara/21202_hg19_premrna_seurat-object.rds'
 ## args$label <- '21202'
@@ -204,33 +205,37 @@ library(data.table)
 DT <- data.table(allann)
 gsea.ann <- DT[, lapply(.SD, function(x) paste(head(x[order(p.adjust)], 5), collapse='|  ')), by=cluster, .SDcols=3]
 
-#data(example_TME_markers)
-#library(SingleCellExperiment)
-#primary1.sce = as.SingleCellExperiment(primary1_obj)
-#sizeFactors(primary1.sce) <- colSums(assay(primary1.sce))
-#
-#if (args$species == 'fish') {
-#    example_TME_markers$symbol = lapply(example_TME_markers$symbol, function(x) {
-#        human_ortholog[human_ortholog$Hsortholog %in% x, 'Gene']
-#    })
-#}
-#
-#marker_mat = marker_list_to_mat(example_TME_markers$symbol)
-#
-#sce_marker <- primary1.sce[intersect(rownames(marker_mat), rownames(primary1.sce)),]
-#s = sizeFactors(sce_marker)
-#sce_marker = sce_marker[, s > 0]
-#s = s[s > 0]
-#cas <- cellassign(exprs_obj = sce_marker,
-#                  marker_gene_info = marker_mat[intersect(rownames(marker_mat), rownames(primary1.sce)),],
-#                  s = s)
-#colnames(sce_marker)
+data(example_TME_markers)
+library(SingleCellExperiment)
 
-#primary1.objann = subset(primary1_obj, cells=colnames(sce_marker))
-#primary1.objann$seurat_clusters = cas$cell_type
-#pdf(glue('{args$label}_cellassign.pdf'), width=6, height=4)
-#DimPlot(primary1.objann, reduction='umap', group.by='seurat_clusters')
-#dev.off()
+primary1.sce = as.SingleCellExperiment(primary1_obj)
+sizeFactors(primary1.sce) <- colSums(assay(primary1.sce))
+
+if (args$species == 'fish') {
+    example_TME_markers$symbol = lapply(example_TME_markers$symbol, function(x) {
+        human_ortholog[human_ortholog$Hsortholog %in% x, 'Gene']
+    })
+}
+
+marker_mat = marker_list_to_mat(example_TME_markers$symbol)
+
+sce_marker <- primary1.sce[intersect(rownames(marker_mat), rownames(primary1.sce)),]
+
+s = sizeFactors(sce_marker)
+sce_marker = sce_marker[, s > 0]
+s = s[s > 0]
+
+cas <- cellassign(exprs_obj = sce_marker,
+                  marker_gene_info = marker_mat[intersect(rownames(marker_mat), rownames(primary1.sce)),],
+                  s = s)
+
+colnames(sce_marker)
+
+primary1.objann = subset(primary1_obj, cells=colnames(sce_marker))
+primary1.objann$seurat_clusters = cas$cell_type
+pdf(glue('{args$label}_cellassign.pdf'), width=6, height=4)
+DimPlot(primary1.objann, reduction='umap', group.by='seurat_clusters')
+dev.off()
 
 #if (args$species == 'human') {
 #    levels(primary1_obj$RNA_snn_res.0.8)[match(gsea.ann$cluster, levels(primary1_obj$RNA_snn_res.0.8))] <- gsea.ann$ID

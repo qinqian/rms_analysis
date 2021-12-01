@@ -7,6 +7,7 @@ library(RColorBrewer)
 library(tidyverse)
 
 pdxs = Sys.glob('../data/seurat_obj/*rds')[1:10]
+
 annotation = read.delim('../final_annotations/Final_clusters.txt', sep='\t', row.names=1, header=T,
                         check.names=F, stringsAsFactors=F)
 
@@ -354,6 +355,35 @@ dev.off()
 
 
 MAST111 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST111.rds')
+MSK72117_10cells = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds')
+## new added samples
+MSK74711 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK74711_seurat-object.rds')
+MAST118 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/MAST118_seurat-object.rds')
+
+MAST111$seurat_clusters = MAST111$RNA_snn_res.0.8
+states = unlist(as.vector(annotation["MAST111", ]))
+states = states[states!='']
+levels(MAST111$RNA_snn_res.0.8) = states
+
+MSK74711$seurat_clusters = MSK74711$RNA_snn_res.0.8
+states = unlist(as.vector(annotation["MSK74711", ]))
+states = states[states!='']
+levels(MSK74711$RNA_snn_res.0.8) = states
+
+MAST118$seurat_clusters = MAST118$RNA_snn_res.0.8
+states = unlist(as.vector(annotation["MAST118", ]))
+states = states[states!='']
+levels(MAST118$RNA_snn_res.0.8) = states
+
+
+pdf("Fig_MAST111_MSK74711_MAST118_UMAP.pdf", width=15, height=3.5)
+p1=DimPlot(MAST111, group.by='RNA_snn_res.0.8', cols=metacolors, label=F)+ggtitle('MAST111')
+p2=DimPlot(MSK74711, group.by='RNA_snn_res.0.8', cols=metacolors, label=F)+ggtitle('MSK74711')
+p3=DimPlot(MAST118, group.by='RNA_snn_res.0.8', cols=metacolors, label=F)+ggtitle('MAST118')
+print(p1+p2+p3)
+dev.off()
+
+
 MAST139 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST139.rds')
 MAST39 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST39.rds')
 RH74 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_RH74.rds')
@@ -361,10 +391,6 @@ MAST95 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-o
 MAST85 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST85.rds')
 MSK82489 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MSK82489.rds')
 MAST35 = readRDS('/data/langenau/human_rms_pdxs/seurat_objects/20190624_seurat-object_MAST35.rds')
-## new added samples
-MSK72117_10cells = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK72117tencell_seurat-object.rds')
-MAST118 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/MAST118_seurat-object.rds')
-MSK74711 = readRDS('/data/langenau/alvin_singlecell/01_rms_projects/01_fish/results/seurat_sara/20191031_MSK74711_seurat-object.rds')
 
 MSK72117_10cells@meta.data$orig.ident = gsub('tencell', '', gsub('20191031_', '', MSK72117_10cells@meta.data$orig.ident))
 MSK74711@meta.data$orig.ident = gsub('20191031_', '', MSK74711@meta.data$orig.ident)
