@@ -1,0 +1,5 @@
+RMS Sample	0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16
+MAST39-Resistant	Prolif	Prolif	Hypoxia	Prolif	Hypoxia	Ground	UNIQUE_1_Apoptosis	EMT
+MAST39-Sensitive	Histone	Prolif	Ground	Prolif	Prolif	Prolif	Hypoxia	Histone	Interferon
+MAST139-Resistant	Prolif	EMT	Prolif	Prolif	Hypoxia	Ground	Interferon	Muscle	Muscle	Hypoxia	EMT
+MAST139-Sensitive	Prolif	Prolif	Ground	EMT	Prolif	EMT	Muscle	Hypoxia	Interferon	Prolif

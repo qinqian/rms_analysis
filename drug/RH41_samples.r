@@ -104,7 +104,7 @@ integration <- function(x, y, label) {
     integrated
 }
 
-annotation = read.delim('RH41_clusters.txt', sep='\t', row.names=1, header=T,
+annotation = read.delim('RH41/RH41_clusters.txt', sep='\t', row.names=1, header=T,
                         check.names=F, stringsAsFactors=F)
 metacolors <- c(rgb(119, 62, 20, maxColorValue = 255),
                 rgb(236, 133, 40, maxColorValue = 255),
@@ -134,7 +134,6 @@ conds = list(res, sen)
 objs = integration(conds[[1]], conds[[2]], c('RH41-R', 'RH41-S'))
 
 pdf('ALL_RH41_batchcorrected_UMAP.pdf', width=8, height=8)
-## p1=DimPlot(objs, reduction='umap', split.by='orig.ident', group.by='integrated_snn_res.0.8', label=T) + theme(legend.position='right')
 p2=DimPlot(objs, ncol=1, reduction='umap', split.by='orig.ident', group.by='seurat_clusters', label=F, cols=metacolors) + theme(legend.position='right')
 print(p2)
 dev.off()
@@ -232,9 +231,9 @@ clusters = clusters %>% mutate(FoldEnrichment = parse_ratio(GeneRatio) / parse_r
 write.table(clusters, file="RH41_resistant_sensitive_integrative_markers_gsea.xls", quote=F,
             sep='\t')
 
-ann_all = read.table("RH41_integrative_clusters.txt", sep='\t', header=T, row.names=1)
+ann_all = read.table("RH41/RH41_integrative_clusters.txt", sep='\t', header=T, row.names=1)
 
-plotmarkers.integrate = function(x, cluster='seurat_clusters') {
+plotmarkers.integrate = function(x, cluster='seurat_clusters',cutoff=0.4) {
     clusters = x@meta.data[[cluster]]
     levels(clusters)[grepl('EMT', levels(clusters))] = 'EMT'
     cols = as.vector(clusters)
@@ -243,20 +242,20 @@ plotmarkers.integrate = function(x, cluster='seurat_clusters') {
     muscle_markers = Matrix::colMeans(x[muscle,]$RNA@data)
     emt_markers = Matrix::colMeans(x[emt,]$RNA@data)
     prolif_markers = Matrix::colMeans(x[prolif,]$RNA@data)
-
     muscle_markers = muscle_markers/max(muscle_markers)
     emt_markers = emt_markers/max(emt_markers)
     prolif_markers = prolif_markers/max(prolif_markers)
+    muscle_cells = (muscle_markers > cutoff) # & (prolif_markers < 0.2) & (emt_markers < 0.)
     named_cols = c("red", "purple", "blue", "brown", "grey")
     names(named_cols) = c("Muscle", "EMT", "Prolif", "Ground", "Other")
     scatter3D(muscle_markers, emt_markers, prolif_markers,
               xlab="Muscle", ylab="EMT", zlab="Prolif",
-              ## xlim=c(0, 2.0), ylim=c(0, 1.3), zlim=c(0, 1.3),
               bty = "g", alpha=0.7, ticktype = "detailed",
               theta = 135, phi = 40, pch = 16, cex=0.5, main=as.character((x@meta.data)[1,1]), colvar=as.integer(cols) , col = named_cols[levels(cols)],
               colkey = list(at = seq(1, length(levels(cols))), side = 1, 
                             addlines = TRUE, length = 0.6, width = 0.4,
                             labels = levels(cols)))
+    return(muscle_cells)
 }
 
 pdf('ALL_RH41_batchcorrected_UMAP_integrative_cluster_dominantstates.pdf', width=8, height=4)
@@ -268,9 +267,39 @@ dev.off()
 
 pdf("RH41_3Dplot_integrate.pdf", width=8, height=5)
 par(mfrow=c(1, 2), cex=0.6)
-plotmarkers.integrate(objs[, objs@meta.data$orig.ident=='RH41-R'])
-plotmarkers.integrate(objs[, objs@meta.data$orig.ident=='RH41-S'])
+muscle_cells_R = plotmarkers.integrate(objs[, objs@meta.data$orig.ident=='RH41-R'])
+muscle_cells_S = plotmarkers.integrate(objs[, objs@meta.data$orig.ident=='RH41-S'])
 dev.off()
+
+resistant = objs[, (objs@meta.data$orig.ident=='RH41-R')]
+sensitive = objs[, (objs@meta.data$orig.ident=='RH41-S')]
+
+levels(resistant@meta.data$seurat_clusters)[length(levels(resistant@meta.data$seurat_clusters))+1] = 'Muscle'
+resistant@meta.data$seurat_clusters[muscle_cells_R] = 'Muscle'
+
+levels(sensitive@meta.data$seurat_clusters)[length(levels(sensitive@meta.data$seurat_clusters))+1] = 'Muscle'
+sensitive@meta.data$seurat_clusters[muscle_cells_S] = 'Muscle'
+
+pdf("RH41_3Dplot_integrate.pdf", width=8, height=5)
+par(mfrow=c(1, 2), cex=0.6)
+plotmarkers.integrate(resistant)
+plotmarkers.integrate(sensitive)
+dev.off()
+
+table(resistant$orig.ident, resistant$seurat_clusters)
+table(sensitive$orig.ident, sensitive$seurat_clusters)
+
+pdf('ALL_RH41_batchcorrected_UMAP_integrative_cluster_dominantstates.pdf', width=8, height=4)
+## Idents(objs) = objs$seurat_clusters = objs$integrated_snn_res.0.8
+## levels(Idents(objs)) = levels(objs$seurat_clusters) = unlist(ann_all[1, , drop=T])
+p1=DimPlot(resistant, reduction='umap', group.by='seurat_clusters', label=F, cols=metacolors[unique(as.character(resistant$seurat_clusters))]) + theme(legend.position='right')
+p2=DimPlot(sensitive, reduction='umap', group.by='seurat_clusters', label=F, cols=metacolors[unique(as.character(sensitive$seurat_clusters))]) + theme(legend.position='right')
+print(p1+p2)
+dev.off()
+
+sum(as.character(objs@meta.data$seurat_clusters)==c(as.character(resistant$seurat_clusters), as.character(sensitive$seurat_clusters)))
+
+objs@meta.data$seurat_clusters=factor(c(as.character(resistant$seurat_clusters), as.character(sensitive$seurat_clusters)))
 
 pdf("ALL_RH41_integrate_markers.pdf")
 FeaturePlot(objs, features = c("CD44", "MYOG", "MYOD1", "BUB3"), min.cutoff = "q9")
@@ -412,6 +441,16 @@ for (chunk in split(rownames(head(responses.filter[['Ground']], 50)), ceiling(se
                       split.by = "orig.ident", max.cutoff = 3, cols = c("grey", "red")))
 }
 dev.off()
+
+
+pdf(glue("RH41_differential_markers_Muscle.pdf"), width=9, height=28)
+for (chunk in split(rownames(head(responses.filter[['Muscle']], 50)), ceiling(seq(50)/9))) {
+    print(chunk)
+    print(FeaturePlot(objs, features = chunk, ncol=3,
+                      split.by = "orig.ident", max.cutoff = 3, cols = c("grey", "red")))
+}
+dev.off()
+
 
 cat(intersect(intersect(rownames(head(responses.filter[['Ground']], 50)),
                                   rownames(head(responses.filter[['EMT']], 50))),
